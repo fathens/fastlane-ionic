@@ -85,11 +85,8 @@ platform :ios do
 
     if is_ci? then
       ipa_path = dirPlatform/"#{ENV["APPLICATION_DISPLAY_NAME"]}.ipa"
-      case ENV['BUILD_MODE']
-      when "beta", "debug"
-        deploy_beta(path: ipa_path)
 
-      when "release"
+      if is_release? then
         note_path = release_note(line_format: '%s')
 
         pilot(
@@ -99,6 +96,8 @@ platform :ios do
         distribute_external: false,
         changelog: File.open(note_path).read
         )
+      else
+        deploy_beta(path: ipa_path)
       end
     end
   end
@@ -127,11 +126,8 @@ platform :android do
 
     if is_ci? then
       dirApk = dirPlatform/'build'/'outputs'/'apk'
-      case ENV['BUILD_MODE']
-      when "beta", "debug"
-        deploy_beta(path: dirApk/'android-release.apk')
 
-      when "release"
+      if is_release? then
         ['armv7', 'x86'].each do |arch|
           begin
             supply(
@@ -148,6 +144,8 @@ platform :android do
             puts ex.message
           end
         end
+      else
+        deploy_beta(path: dirApk/'android-release.apk')
       end
     end
   end
