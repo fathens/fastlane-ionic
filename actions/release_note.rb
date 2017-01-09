@@ -8,7 +8,7 @@ module Fastlane
         if !notes.empty? then
           target = Pathname('.release_note')
           target.write notes
-          ENV["RELEASE_NOTE_PATH"] = target.realpath.to_s
+          target.realpath.to_s
         end
       end
 
