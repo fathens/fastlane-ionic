@@ -1,3 +1,5 @@
+puts "vertion: 0.0.1"
+
 require 'pathname'
 
 fastlane_version "2.6.0"
