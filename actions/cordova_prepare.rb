@@ -9,8 +9,8 @@ module Fastlane
       end
 
       def self.copy_config(appId)
-        template = 'cordova.config.xml'
-        target = 'config.xml'
+        template = Pathname('cordova.config.xml')
+        target = Pathname('config.xml')
         if template.exist? && !target.exist? then
           FileUtils.copy(template, target)
         end
@@ -24,7 +24,7 @@ module Fastlane
       end
 
       def self.npm_build
-        if !('www').exist? then
+        if !Pathname('www').exist? then
           system("npm install")
           system("npm run ionic:build")
           cache_index
