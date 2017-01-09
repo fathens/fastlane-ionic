@@ -29,7 +29,6 @@ module Fastlane
         if !Pathname('www').exist? then
           system("npm install")
           system("npm run ionic:build")
-          cache_index
         end
       end
 
