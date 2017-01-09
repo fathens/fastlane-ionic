@@ -4,7 +4,7 @@ module Fastlane
       def self.run(params)
         copy_config(params[:app_id])
         npm_build
-        mk_platform
+        resources
       end
 
       def self.copy_config(appId)
@@ -31,18 +31,7 @@ module Fastlane
         end
       end
 
-      def self.mk_platform
-        dirs = [Pathname('plugins'), Pathname('platforms')/ENV["FASTLANE_PLATFORM_NAME"]]
-        if !dirs.all? { |x| x.exist? } then
-          dirs.each do |dir|
-            puts "Deleting dir: #{dir}"
-            FileUtils.rm_rf dir
-          end
-          Dir.mkdir dirs.first
-
-          system("cordova platform add #{ENV["FASTLANE_PLATFORM_NAME"]}")
-        end
-
+      def self.resources
         res_dir= Pathname('resources')
         use_png = lambda { |prefix|
           src = res_dir/"#{prefix}-#{ENV["FASTLANE_PLATFORM_NAME"]}.png"
@@ -53,7 +42,7 @@ module Fastlane
         if !(res_dir/ENV["FASTLANE_PLATFORM_NAME"]).exist? then
           use_png['icon']
           use_png['splash']
-          system("ionic resources")
+          sh("ionic resources #{ENV["FASTLANE_PLATFORM_NAME"]}")
         end
       end
 

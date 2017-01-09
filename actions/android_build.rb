@@ -3,9 +3,11 @@ module Fastlane
     class AndroidBuildAction < Action
       def self.run(params)
         build_num
+        predir
+
+        sh("cordova platform add android")
 
         config_file = Dir.chdir(Pathname('platforms')/'android') do
-          update_sdk
           multi_apks(params[:multi_apks])
           keystore(params[:keystore])
         end
@@ -13,13 +15,15 @@ module Fastlane
         sh("cordova build android --release --buildConfig=#{config_file}")
       end
 
-      def self.update_sdk
+      def self.predir
+        FileUtils.mkdir_p "~/.android"
+
         put_file = lambda { |target, content|
           FileUtils.mkdir_p(target.dirname)
           File.write(target, content)
         }
         put_file[
-          Pathname('gradle.properties'),
+          Pathname('platforms')/'android'/'gradle.properties',
           'android.builder.sdkDownload=true'
         ]
         put_file[

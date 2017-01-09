@@ -3,6 +3,7 @@ module Fastlane
     class IosBuildAction < Action
       def self.run(params)
         keychain(params[:certificate_path])
+        sh("cordova platform add ios")
         sh("cordova prepare ios")
         provisioning(params[:profile_path])
         sh("cordova build ios --release")
