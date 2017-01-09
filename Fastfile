@@ -41,7 +41,6 @@ end
 def createWWW
   if !($PROJECT_DIR/'www').exist? then
     Dir.chdir($PROJECT_DIR) do
-      sh("npm run custom_icons")
       sh("npm run ionic:build")
     end
     cache_index
