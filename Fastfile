@@ -138,17 +138,16 @@ platform :ios do
       if is_ci? then
         case ENV['BUILD_MODE']
         when "beta", "debug"
-          release_note
           deploy_beta(dirPlatform/"#{ENV["APPLICATION_DISPLAY_NAME"]}.ipa")
 
         when "release"
-          release_note(line_format: '%s')
+          note_path = release_note(line_format: '%s')
 
           pilot(
           app_identifier: ENV['APP_IDENTIFIER'],
           skip_submission: true,
           distribute_external: false,
-          changelog: File.open(ENV['RELEASE_NOTE_PATH']).read
+          changelog: File.open(note_path).read
           )
         end
       end
@@ -181,7 +180,6 @@ platform :android do
       dirApk = dirPlatform/'build'/'outputs'/'apk'
       case ENV['BUILD_MODE']
       when "beta", "debug"
-        release_note
         deploy_beta(dirApk/'android-release.apk')
 
       when "release"
@@ -220,7 +218,7 @@ def deploy_beta(path)
   apk_path: apk_path,
   api_token: ENV["FABRIC_API_KEY"],
   build_secret: ENV["FABRIC_BUILD_SECRET"],
-  notes_path: ENV["RELEASE_NOTE_PATH"],
+  notes_path: release_note,
   groups: ENV["FABRIC_CRASHLYTICS_GROUPS"],
   notifications: false,
   debug: false
