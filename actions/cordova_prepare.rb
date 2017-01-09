@@ -26,8 +26,8 @@ module Fastlane
 
       def self.npm_build
         if !Pathname('www').exist? then
-          system("npm install")
-          system("npm run ionic:build")
+          sh("npm install")
+          sh("npm run ionic:build")
         end
       end
 
