@@ -2,7 +2,7 @@ module Fastlane
   module Actions
     class CordovaPrepareAction < Action
       def self.run(params)
-          copy_config(params[:id])
+          copy_config(params[:app_id])
           npm_build
           mk_platform
           system("cordova prepare #{ENV["FASTLANE_PLATFORM_NAME"]}")
@@ -67,7 +67,7 @@ module Fastlane
 
       def self.available_options
         [
-          FastlaneCore::ConfigItem.new(key: :id,
+          FastlaneCore::ConfigItem.new(key: :app_id,
           description: "App ID for config.xml",
           optional: false,
           is_string: true

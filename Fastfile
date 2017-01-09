@@ -58,7 +58,7 @@ platform :ios do
   end
 
   lane :build do
-    cordova_prepare(ENV["APP_IDENTIFIER"] = ENV['IOS_BUNDLE_ID'])
+    cordova_prepare(app_id: ENV["APP_IDENTIFIER"] = ENV['IOS_BUNDLE_ID'])
 
     if is_ci?
       keychainName = sh("security default-keychain").match(/.*\/([^\/]+)\"/)[1]
@@ -103,7 +103,7 @@ platform :ios do
       if is_ci? then
         case ENV['BUILD_MODE']
         when "beta", "debug"
-          deploy_beta(dirPlatform/"#{ENV["APPLICATION_DISPLAY_NAME"]}.ipa")
+          deploy_beta(path: dirPlatform/"#{ENV["APPLICATION_DISPLAY_NAME"]}.ipa")
 
         when "release"
           note_path = release_note(line_format: '%s')
@@ -126,7 +126,7 @@ platform :android do
   end
 
   lane :build do
-    cordova_prepare(ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'])
+    cordova_prepare(app_id: ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'])
 
     android_build(
     keystore: persistent('keystore'),
@@ -145,7 +145,7 @@ platform :android do
       dirApk = dirPlatform/'build'/'outputs'/'apk'
       case ENV['BUILD_MODE']
       when "beta", "debug"
-        deploy_beta(dirApk/'android-release.apk')
+        deploy_beta(path: dirApk/'android-release.apk')
 
       when "release"
         ['armv7', 'x86'].each do |arch|
@@ -167,27 +167,6 @@ platform :android do
       end
     end
   end
-end
-
-def deploy_beta(path)
-  case ENV["FASTLANE_PLATFORM_NAME"]
-  when "ios"
-    ipa_path = path.to_s
-  when "android"
-    apk_path = path.to_s
-  else
-    raise "Unsupported platform: #{ENV["FASTLANE_PLATFORM_NAME"]}"
-  end
-  crashlytics(
-  ipa_path: ipa_path,
-  apk_path: apk_path,
-  api_token: ENV["FABRIC_API_KEY"],
-  build_secret: ENV["FABRIC_BUILD_SECRET"],
-  notes_path: release_note,
-  groups: ENV["FABRIC_CRASHLYTICS_GROUPS"],
-  notifications: false,
-  debug: false
-  )
 end
 
 after_all do
