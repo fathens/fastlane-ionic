@@ -5,14 +5,6 @@ fastlane documentation
 sudo gem install fastlane
 ```
 # Available Actions
-### prepare_serve
-```
-fastlane prepare_serve
-```
-
-
-----
-
 ## iOS
 ### ios clean
 ```

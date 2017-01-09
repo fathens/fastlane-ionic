@@ -1,6 +1,6 @@
 require 'pathname'
 
-fastlane_version "1.39.0"
+fastlane_version "2.6.0"
 
 $PROJECT_DIR = Pathname('..').realpath
 
@@ -44,7 +44,6 @@ def createWWW
       sh("npm run custom_icons")
       sh("npm run ionic:build")
     end
-    write_settings
     cache_index
   end
 end
@@ -85,11 +84,6 @@ def prepare(app_id)
   createWWW
 
   cordova
-end
-
-lane :prepare_serve do
-  into_mode
-  write_settings
 end
 
 platform :ios do
