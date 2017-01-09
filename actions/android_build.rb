@@ -2,7 +2,7 @@ module Fastlane
   module Actions
     class AndroidBuildAction < Action
       def self.run(params)
-        update_sdk(params[:sdks] || [])
+        # update_sdk(params[:sdks] || [])
         build_num
 
         config_file = Dir.chdir(File.join('platforms', 'android')) do
