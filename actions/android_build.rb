@@ -84,11 +84,6 @@ module Fastlane
 
       def self.available_options
         [
-          FastlaneCore::ConfigItem.new(key: :sdks,
-          description: "Array of sdk names",
-          optional: true,
-          is_string: false
-          ),
           FastlaneCore::ConfigItem.new(key: :keystore,
           description: "Absolute path to keystore",
           optional: false,
