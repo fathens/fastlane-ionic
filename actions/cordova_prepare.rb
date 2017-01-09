@@ -15,12 +15,14 @@ module Fastlane
           FileUtils.copy(template, target)
         end
 
-        puts "Setting App ID '#{appId}' to #{target}"
-        require 'rexml/document'
-        doc = REXML::Document.new(open(target))
+        if appId then
+          puts "Setting App ID '#{appId}' to #{target}"
+          require 'rexml/document'
+          doc = REXML::Document.new(open(target))
 
-        doc.elements['widget'].attributes['id'] = appId
-        File.write(target, doc)
+          doc.elements['widget'].attributes['id'] = appId
+          File.write(target, doc)
+        end
       end
 
       def self.npm_build
@@ -69,7 +71,7 @@ module Fastlane
         [
           FastlaneCore::ConfigItem.new(key: :app_id,
           description: "App ID for config.xml",
-          optional: false,
+          optional: true,
           is_string: true
           )
         ]
