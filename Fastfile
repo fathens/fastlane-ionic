@@ -74,31 +74,17 @@ def clean
 end
 
 def prepare(app_id)
+  into_mode
+
   copy_config
 
   set_app_id(id: app_id)
-
-  into_mode
 
   adjust_buildnum(0)
 
   createWWW
 
-  cordova(plugins: [
-    'cordova-plugin-crosswalk-webview@~2.1.0',
-    'https://github.com/driftyco/cordova-plugin-wkwebview-engine.git',
-    is_release? ? nil : 'cordova-plugin-console@~1.0.2',
-    'cordova-plugin-splashscreen@~4.0.0',
-    'cordova-plugin-statusbar@~2.2.0',
-    'cordova-plugin-geolocation@~2.4.0',
-    'cordova-plugin-whitelist@~1.3.0',
-    'phonegap-plugin-push@~1.8.3',
-    "https://github.com/fathens/Cordova-Plugin-FBConnect.git --variable APP_ID=#{ENV['FACEBOOK_APP_ID']} --variable APP_NAME=#{ENV['APPLICATION_NAME']}",
-    "https://github.com/fathens/Cordova-Plugin-Fabric.git --variable API_KEY=#{ENV['FABRIC_API_KEY']}",
-    "https://github.com/fathens/Cordova-Plugin-FabricCrashlytics.git",
-    "https://github.com/fathens/Cordova-Plugin-FabricAnswers.git",
-    "https://github.com/fathens/Cordova-Plugin-FabricDigits.git --variable FABRIC_TWITTER_KEY=#{ENV['FABRIC_TWITTER_KEY']} --variable FABRIC_TWITTER_SECRET=#{ENV['FABRIC_TWITTER_SECRET']}"
-  ])
+  cordova
 end
 
 lane :prepare_serve do

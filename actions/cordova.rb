@@ -4,11 +4,11 @@ module Fastlane
   module Actions
     class CordovaAction < Action
       def self.run(params)
-        cordova(params[:plugins] || [])
+        cordova
         ionic
       end
 
-      def self.cordova(plugins)
+      def self.cordova
         dirs = [Pathname('plugins'), Pathname('platforms')/ENV["FASTLANE_PLATFORM_NAME"]]
         if !dirs.all? { |x| x.exist? } then
           dirs.each do |dir|
@@ -18,10 +18,6 @@ module Fastlane
           Dir.mkdir dirs.first
 
           system("cordova platform add #{ENV["FASTLANE_PLATFORM_NAME"]}")
-
-          plugins.each do |line|
-            system("cordova plugin add #{line}") if line
-          end
         end
       end
 
@@ -50,13 +46,7 @@ module Fastlane
       end
 
       def self.available_options
-        [
-          FastlaneCore::ConfigItem.new(key: :plugins,
-          description: "Array of plugins",
-          optional: true,
-          is_string: false
-          )
-        ]
+        []
       end
 
       def self.authors
