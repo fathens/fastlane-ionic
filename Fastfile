@@ -4,6 +4,8 @@ require 'pathname'
 
 fastlane_version "2.6.0"
 
+into_mode
+
 $PROJECT_DIR = Pathname('..').realpath
 
 def dirPlatform
@@ -22,31 +24,8 @@ def into_platform &block
   end
 end
 
-def adjust_buildnum(offset)
-  src = ENV['BUILD_NUM'] || '0'
-  ENV['BUILD_NUM'] = "#{Integer(src) + offset}"
-  puts "Adjusted BuildNum: #{ENV['BUILD_NUM']}"
-end
-
 def is_release?
   ["release"].include? ENV['BUILD_MODE']
-end
-
-def copy_config
-  src = $PROJECT_DIR/'cordova.config.xml'
-  dst = $PROJECT_DIR/'config.xml'
-  if src.exist? && !dst.exist? then
-    FileUtils.copy(src, dst)
-  end
-end
-
-def createWWW
-  if !($PROJECT_DIR/'www').exist? then
-    Dir.chdir($PROJECT_DIR) do
-      sh("npm run ionic:build")
-    end
-    cache_index
-  end
 end
 
 def clean
@@ -73,28 +52,13 @@ def clean
   del('www')
 end
 
-def prepare(app_id)
-  into_mode
-
-  copy_config
-
-  set_app_id(id: app_id)
-
-  adjust_buildnum(0)
-
-  createWWW
-
-  cordova
-end
-
 platform :ios do
   lane :clean do
     clean
   end
 
   lane :build do
-    prepare(ENV["APP_IDENTIFIER"] = ENV['IOS_BUNDLE_ID'])
-    sh('cordova prepare ios')
+    cordova_prepare(ENV["APP_IDENTIFIER"] = ENV['IOS_BUNDLE_ID'])
 
     if is_ci?
       keychainName = sh("security default-keychain").match(/.*\/([^\/]+)\"/)[1]
@@ -162,7 +126,7 @@ platform :android do
   end
 
   lane :build do
-    prepare(ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'])
+    cordova_prepare(ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'])
 
     android_build(
     keystore: persistent('keystore'),
