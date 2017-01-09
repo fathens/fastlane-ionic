@@ -1,6 +1,6 @@
 module Fastlane
   module Actions
-    class CordovaPrepareAction < Action
+    class CordovaAssetsAction < Action
       def self.run(params)
         copy_config(params[:app_id])
         npm_build
