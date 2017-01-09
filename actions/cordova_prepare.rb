@@ -5,7 +5,6 @@ module Fastlane
           copy_config(params[:app_id])
           npm_build
           mk_platform
-          system("cordova prepare #{ENV["FASTLANE_PLATFORM_NAME"]}")
       end
 
       def self.copy_config(appId)

@@ -1,4 +1,4 @@
-puts "vertion: 0.0.1"
+puts "version: 0.0.1"
 
 require 'pathname'
 
@@ -60,28 +60,10 @@ platform :ios do
   lane :build do
     cordova_prepare(app_id: ENV["APP_IDENTIFIER"] = ENV['IOS_BUNDLE_ID'])
 
-    into_platform do
-      recreate_schemes(
-        project: "#{ENV["APPLICATION_DISPLAY_NAME"]}.xcodeproj"
-      )
-    end
-
-    if is_ci?
-      keychainName = sh("security default-keychain").match(/.*\/([^\/]+)\"/)[1]
-      puts "Using keychain: #{keychainName}"
-      import_certificate keychain_name: keychainName, certificate_path: persistent("Distribution.p12").to_s, certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
-    end
-
-    profile_path = is_release? ? persistent('Profile_AppStore.mobileprovision') : persistent('Profile_AdHoc.mobileprovision')
-    profile = FastlaneCore::ProvisioningProfile.parse profile_path
-    UI.message "Using profile: #{profile}"
-    signId = "iPhone Distribution: #{profile['TeamName']} (#{profile['TeamIdentifier'].first})"
-
-    open(dirPlatform/'cordova'/'build-extras.xcconfig', 'a') { |f|
-      f.puts "CODE_SIGN_IDENTITY[sdk=iphoneos*] = #{signId}"
-    }
-
-    system('cordova build ios --release')
+    ios_build(
+    certificate_path: persistent("Distribution.p12").to_s,
+    profile_path: is_release? ? persistent('Profile_AppStore.mobileprovision') : persistent('Profile_AdHoc.mobileprovision')
+    )
 
     if is_ci? then
       ipa_path = dirPlatform/"#{ENV["APPLICATION_DISPLAY_NAME"]}.ipa"
@@ -113,16 +95,8 @@ platform :android do
 
     android_build(
     keystore: persistent('keystore'),
-    multi_apks: is_release?,
-    sdks: [
-      'platform-tools',
-      'tools',
-      'android-23',
-      'extra-google-m2repository',
-      'extra-android-support',
-      'extra-android-m2repository',
-      'build-tools'
-    ])
+    multi_apks: is_release?
+    )
 
     if is_ci? then
       dirApk = dirPlatform/'build'/'outputs'/'apk'
