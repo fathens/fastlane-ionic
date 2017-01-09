@@ -60,61 +60,45 @@ platform :ios do
   lane :build do
     cordova_prepare(app_id: ENV["APP_IDENTIFIER"] = ENV['IOS_BUNDLE_ID'])
 
+    into_platform do
+      recreate_schemes(
+        project: "#{ENV["APPLICATION_DISPLAY_NAME"]}.xcodeproj"
+      )
+    end
+
     if is_ci?
       keychainName = sh("security default-keychain").match(/.*\/([^\/]+)\"/)[1]
       puts "Using keychain: #{keychainName}"
       import_certificate keychain_name: keychainName, certificate_path: persistent("Distribution.p12").to_s, certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
     end
 
-    into_platform do
-      recreate_schemes(
-        project: "#{ENV["APPLICATION_DISPLAY_NAME"]}.xcodeproj"
-      )
+    profile_path = is_release? ? persistent('Profile_AppStore.mobileprovision') : persistent('Profile_AdHoc.mobileprovision')
+    profile = FastlaneCore::ProvisioningProfile.parse profile_path
+    UI.message "Using profile: #{profile}"
+    signId = "iPhone Distribution: #{profile['TeamName']} (#{profile['TeamIdentifier'].first})"
 
-      if ENV["BUILD_NUM"] != nil then
-        increment_build_number(
-        build_number: ENV["BUILD_NUM"]
+    open(dirPlatform/'cordova'/'build-extras.xcconfig', 'a') { |f|
+      f.puts "CODE_SIGN_IDENTITY[sdk=iphoneos*] = #{signId}"
+    }
+
+    system('cordova build ios --release')
+
+    if is_ci? then
+      ipa_path = dirPlatform/"#{ENV["APPLICATION_DISPLAY_NAME"]}.ipa"
+      case ENV['BUILD_MODE']
+      when "beta", "debug"
+        deploy_beta(path: ipa_path)
+
+      when "release"
+        note_path = release_note(line_format: '%s')
+
+        pilot(
+        app_identifier: ENV['APP_IDENTIFIER'],
+        ipa: ipa_path,
+        skip_submission: true,
+        distribute_external: false,
+        changelog: File.open(note_path).read
         )
-      end
-
-      sigh(
-      app_identifier: ENV['APP_IDENTIFIER'],
-      adhoc: !is_release?
-      )
-
-      profile = FastlaneCore::ProvisioningProfile.parse lane_context[:SIGH_PROFILE_PATH]
-      UI.message "Using profile: #{profile}"
-      signId = "iPhone Distribution: #{profile['TeamName']} (#{profile['TeamIdentifier'].first})"
-
-      open(dirPlatform/'cordova'/'build-extras.xcconfig', 'a') { |f|
-        f.puts "CODE_SIGN_IDENTITY[sdk=iphoneos*] = #{signId}"
-      }
-
-      gym(
-      scheme: ENV["APPLICATION_DISPLAY_NAME"],
-      configuration: "Release",
-      include_bitcode: false,
-      codesigning_identity: signId,
-      xcargs: {
-        PROVISIONING_PROFILE_SPECIFIER: profile['Name'],
-      }.map { |k, v| "#{k.to_s.shellescape}='#{v}'" }.join(' ')
-      )
-
-      if is_ci? then
-        case ENV['BUILD_MODE']
-        when "beta", "debug"
-          deploy_beta(path: dirPlatform/"#{ENV["APPLICATION_DISPLAY_NAME"]}.ipa")
-
-        when "release"
-          note_path = release_note(line_format: '%s')
-
-          pilot(
-          app_identifier: ENV['APP_IDENTIFIER'],
-          skip_submission: true,
-          distribute_external: false,
-          changelog: File.open(note_path).read
-          )
-        end
       end
     end
   end
