@@ -2,10 +2,10 @@ module Fastlane
   module Actions
     class AndroidBuildAction < Action
       def self.run(params)
-        licenses
         build_num
 
-        config_file = Dir.chdir(File.join('platforms', 'android')) do
+        config_file = Dir.chdir(Pathname('platforms')/'android') do
+          update_sdk
           multi_apks(params[:multi_apks])
           keystore(params[:keystore])
         end
@@ -13,10 +13,19 @@ module Fastlane
         sh("cordova build android --release --buildConfig=#{config_file}")
       end
 
-      def self.licenses(names)
-        target = Pathname(ENV['ANDROID_HOME'])/'licenses'/'android-sdk-license'
-        FileUtils.mkdir_p(target.dirname)
-        File.write(target, '8933bad161af4178b1185d1a37fbf41ea5269c55%')
+      def self.update_sdk
+        put_file = lambda { |target, content|
+          FileUtils.mkdir_p(target.dirname)
+          File.write(target, content)
+        }
+        put_file[
+          Pathname('gradle.properties'),
+          'android.builder.sdkDownload=true'
+        ]
+        put_file[
+          Pathname(ENV['ANDROID_HOME'])/'licenses'/'android-sdk-license',
+          '\n8933bad161af4178b1185d1a37fbf41ea5269c55'
+        ]
       end
 
       def self.build_num
