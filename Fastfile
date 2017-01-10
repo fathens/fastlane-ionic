@@ -26,28 +26,6 @@ def is_release?
   ["release"].include? ENV['BUILD_MODE']
 end
 
-before_all do |lane|
-  if lane != :upload_persistent then
-    begin
-      s3_persistent(command: 'download')
-    rescue => ex
-      raise ex if is_ci?
-      print "S3 Persistent is not found. Do you want to upload now ? (y/n) "
-      a = STDIN.gets.chomp
-      if a == 'y' || a == 'Y' then
-        s3_persistent(command: 'upload')
-      else
-        raise ex
-      end
-    end
-    into_mode
-  end
-end
-
-lane :upload_persistent do
-  s3_persistent(command: 'upload')
-end
-
 def clean
   def del(*path)
     target = $PROJECT_DIR.join(*path)
@@ -70,6 +48,29 @@ def clean
   del('platforms')
   del('plugins')
   del('www')
+end
+
+before_all do |lane, options|
+  clean if options[:clean]
+  if lane != :upload_persistent then
+    begin
+      s3_persistent(command: 'download')
+    rescue => ex
+      raise ex if is_ci?
+      print "S3 Persistent is not found. Do you want to upload now ? (y/n) "
+      a = STDIN.gets.chomp
+      if a == 'y' || a == 'Y' then
+        s3_persistent(command: 'upload')
+      else
+        raise ex
+      end
+    end
+    into_mode
+  end
+end
+
+lane :upload_persistent do
+  s3_persistent(command: 'upload')
 end
 
 platform :ios do
