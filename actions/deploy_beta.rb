@@ -36,7 +36,7 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :path,
           description: "Path to APK/IPA file",
           optional: true,
-          is_string: true
+          is_string: false
           )
         ]
       end
