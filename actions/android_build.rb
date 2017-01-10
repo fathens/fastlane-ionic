@@ -16,17 +16,21 @@ module Fastlane
       end
 
       def self.predir
-        put_file = lambda { |target, content|
+        put_file = lambda { |target, *lines|
           FileUtils.mkdir_p(target.dirname)
-          target.write content
+          File.open(target, 'w') { |dst|
+            dst.puts lines
+          }
           target
         }
-        put_file[Pathname(ENV['HOME'])/'.android'/'.keep', '']
+        put_file[Pathname(ENV['HOME'])/'.android'/'.keep']
         put_file[Pathname(ENV['ANDROID_HOME'])/'licenses'/'android-sdk-license',
-          '\n8933bad161af4178b1185d1a37fbf41ea5269c55'
+          '8933bad161af4178b1185d1a37fbf41ea5269c55'
         ]
         put_file[Pathname('hooks')/'before_plugin_add'/'enable_auto_download.sh',
-          'echo -e "\nandroid.builder.sdkDownload=true" >> platforms/android/gradle.properties'
+          '[ -z "$(grep \'android.builder.sdkDownload=true\' platforms/android/gradle.properties)" ] || exit 0',
+          'echo "# Enable sdkDownload"',
+          'echo "android.builder.sdkDownload=true" >> platforms/android/gradle.properties'
         ].chmod(0755)
       end
 
@@ -71,7 +75,6 @@ module Fastlane
             file.puts line
           end
           file.puts "#{key}=#{multi}"
-          file.puts "android.builder.sdkDownload=true"
         end
 
         File.absolute_path target
