@@ -5,8 +5,7 @@ module Fastlane
         build_num
         predir
 
-        sh("echo y | android update sdk -u --filter android-24")
-
+        update_sdk
         sh("cordova platform add android")
 
         config_file = Dir.chdir(Pathname('platforms')/'android') do
@@ -26,14 +25,21 @@ module Fastlane
           target
         }
         put_file[Pathname(ENV['HOME'])/'.android'/'.keep']
-        put_file[Pathname(ENV['ANDROID_HOME'])/'licenses'/'android-sdk-license',
-          '8933bad161af4178b1185d1a37fbf41ea5269c55'
-        ]
         put_file[Pathname('hooks')/'before_plugin_add'/'enable_auto_download.sh',
           '[ -z "$(grep \'android.builder.sdkDownload=true\' platforms/android/gradle.properties)" ] || exit 0',
           'echo "# Enable sdkDownload"',
           'echo "android.builder.sdkDownload=true" >> platforms/android/gradle.properties'
         ].chmod(0755)
+      end
+
+      def self.update_sdk
+        require 'rexml/document'
+
+        config = REXML::Document.new(Pathname('config.xml').read)
+        config.get_elements('//platform[@name="android"]/require-sdk').each { |elem|
+          name = elem.attributes['name']
+          sh("echo y | android update sdk -u --filter #{name}")
+        }
       end
 
       def self.build_num
