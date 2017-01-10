@@ -90,17 +90,15 @@ platform :ios do
       ipa_path = dirPlatform/"#{ENV["APPLICATION_DISPLAY_NAME"]}.ipa"
 
       if is_release? then
-        note_path = release_note(line_format: '%s')
-
         pilot(
         app_identifier: ENV['APP_IDENTIFIER'],
         ipa: ipa_path,
         skip_submission: true,
         distribute_external: false,
-        changelog: File.open(note_path).read
+        changelog: release_note(line_format: '%s').read
         )
       else
-        deploy_beta(path: ipa_path)
+        deploy_beta(path: ipa_path, notes_path: release_note)
       end
     end
   end
@@ -140,7 +138,7 @@ platform :android do
           end
         end
       else
-        deploy_beta(path: dirApk/'android-release.apk')
+        deploy_beta(path: dirApk/'android-release.apk', notes_path: release_note)
       end
     end
   end

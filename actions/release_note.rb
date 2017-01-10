@@ -8,7 +8,7 @@ module Fastlane
         if !notes.empty? then
           target = Pathname('.release_note')
           target.write notes
-          target.realpath.to_s
+          target.realpath
         end
       end
 
