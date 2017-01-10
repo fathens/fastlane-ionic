@@ -44,12 +44,12 @@ module Fastlane
           end
         end
         prefix = "deployed/#{ENV['FASTLANE_PLATFORM_NAME']}/#{ENV['BUILD_MODE']}/"
-        num = sh("git tag -l | grep '#{prefix}' || echo").split("\n").map { |line|
-          line.match(/.*\/([0-9]+)$/)[1].to_i
+        num = sh("git tag -l | grep '#{prefix}' || echo").lines.map { |line|
+          line.chomp.match(/.*\/([0-9]+)$/)[1].to_i
         }.select { |n|
           n < ENV['BUILD_NUM'].to_i
         }.max
-        "#{prefix}#{num}"
+        num ? "#{prefix}#{num}" : 'HEAD'
       end
 
       class CommitObj
