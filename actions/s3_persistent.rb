@@ -9,7 +9,7 @@ module Fastlane
         require 'aws-sdk'
         require 'zip'
 
-        basedir = Pathname.pwd.realpath/'fastlane'/'persistent'
+        basedir = Pathname.pwd.realpath/'fastlane'
 
         puts "S3Persistent: #{params[:command]}"
 
@@ -39,13 +39,16 @@ module Fastlane
         puts "Uploading persistents..."
 
         buffer = Zip::OutputStream.write_buffer(::StringIO.new('')) { |zip|
-          each_file(basedir) do |file|
+          put_entry = lambda do |file|
             puts "Save entry: #{file}"
             zip.put_next_entry(file.relative_path_from basedir)
             file.open { |src|
               zip.write(src.read)
             }
           end
+
+          each_file(basedir/'persistent', &put_entry)
+          Pathname.glob(basedir/'.env.*').each(&put_entry)
         }
         s3 = Aws::S3::Client.new
         s3.put_object(
