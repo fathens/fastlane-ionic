@@ -4,10 +4,7 @@ module Fastlane
   module Actions
     class S3PersistentAction < Action
       def self.run(params)
-        GemInstall.run("aws-sdk")
-        GemInstall.run("rubyzip")
-        require 'aws-sdk'
-        require 'zip'
+        GemInstall.req("aws-sdk", ["rubyzip", "zip"])
 
         basedir = Pathname.pwd.realpath/'fastlane'
 
