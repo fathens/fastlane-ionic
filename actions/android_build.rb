@@ -31,7 +31,7 @@ module Fastlane
           '[ -z "$(grep \'android.builder.sdkDownload=true\' platforms/android/gradle.properties)" ] || exit 0',
           'echo "# Enable sdkDownload"',
           'echo "android.builder.sdkDownload=true" >> platforms/android/gradle.properties',
-          'cd platforms/android; ./gradlew clean :lib:testDebugUnitTest'
+          'cd platforms/android; gradle clean :lib:testDebugUnitTest'
         ].chmod(0755)
       end
 
