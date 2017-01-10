@@ -13,7 +13,7 @@ module Fastlane
           keystore(params[:keystore])
         end
 
-        sh("cordova build android --release --buildConfig=#{config_file}")
+        sh("cordova build android --release --device --buildConfig=#{config_file}")
       end
 
       def self.latest_build_tool

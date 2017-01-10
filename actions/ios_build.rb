@@ -6,7 +6,7 @@ module Fastlane
         sh("cordova platform add ios")
         sh("cordova prepare ios")
         provisioning(params[:profile_path])
-        sh("cordova build ios --release")
+        sh("cordova build ios --release --device")
       end
 
       def self.keychain(certificate_path)
