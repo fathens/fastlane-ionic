@@ -5,6 +5,7 @@ module Fastlane
         build_num
         predir
 
+        update_sdk
         sh("cordova platform add android")
 
         config_file = Dir.chdir(Pathname('platforms')/'android') do
