@@ -12,9 +12,10 @@ module Fastlane
       def self.keychain(certificate_path)
         keychainName = sh("security default-keychain").match(/.*\/([^\/]+)\"/)[1]
         puts "Using keychain: #{keychainName}"
-        import_certificate(
-          keychain_name: keychainName,
-          certificate_path: certificate_path,
+
+        FastlaneCore::KeychainImporter.import_file(
+          certificate_path,
+          File.expand_path(File.join("~", "Library", "Keychains", params[:keychain_name])),
           certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
         )
       end
