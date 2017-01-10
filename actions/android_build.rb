@@ -2,8 +2,8 @@ module Fastlane
   module Actions
     class AndroidBuildAction < Action
       def self.run(params)
+        (Pathname(ENV['HOME'])/'.android'/'.keep').mkdir
         build_num
-        predir
 
         update_sdk
         sh("cordova platform add android")
@@ -16,37 +16,26 @@ module Fastlane
         sh("cordova build android --release --buildConfig=#{config_file}")
       end
 
-      def self.predir
-        put_file = lambda { |target, *lines|
-          FileUtils.mkdir_p(target.dirname)
-          File.open(target, 'w') { |dst|
-            dst.puts lines
-          }
-          target
-        }
-        put_file[Pathname(ENV['HOME'])/'.android'/'.keep']
-        put_file[Pathname(ENV['ANDROID_HOME'])/'licenses'/'android-sdk-license',
-          '8933bad161af4178b1185d1a37fbf41ea5269c55'
-        ]
-        put_file[Pathname('hooks')/'before_plugin_add'/'enable_auto_download.sh',
-          '[ -z "$(grep \'android.builder.sdkDownload=true\' platforms/android/gradle.properties)" ] || exit 0',
-          'echo "# Enable sdkDownload"',
-          'echo "android.builder.sdkDownload=true" >> platforms/android/gradle.properties',
-          'cd platforms/android; gradle clean :lib:testDebugUnitTest'
-        ].chmod(0755)
+      def self.latest_build_tool
+        ssh("android list sdk --no-ui --all --extended | grep build-tools").lines.map { |line|
+          line.chomp.match(/^.*\"build-toos-(.+)\".*$/)[1]
+        }.sort.last
       end
 
       def self.update_sdk
-        build_tools = sh("android list sdk --no-ui --all --extended | grep build-tools").lines.map { |line|
-          line.chomp.match(/^.*\"(.+)\".*$/)[1]
-        }.compact.sort
-
         require 'rexml/document'
-
         config = REXML::Document.new(Pathname('config.xml').read)
-        api_version = config.elements['//platform[@name="android"]']&.attribute('api-version')&.value || '24'
-        puts "Using Android API: #{api_version}"
-        sdks = ["android-#{api_version}", "platform-tools", "tools", build_tools.last]
+        platform = config.elements['//platform[@name="android"]']
+
+        build_tools_version = platform&.attribute('build-tools')&.value || latest_build_tool
+        api_version = platform&.attribute('api-version')&.value || '24'
+
+        sdks = [
+          "android-#{api_version}",
+          "platform-tools",
+          "tools",
+          "build-tools-#{build_tools_version}"
+        ]
         sh("echo y | android update sdk -u --filter #{sdks.join ','}")
       end
 
