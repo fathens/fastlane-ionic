@@ -15,7 +15,7 @@ module Fastlane
 
         FastlaneCore::KeychainImporter.import_file(
           certificate_path,
-          File.expand_path(File.join("~", "Library", "Keychains", keychain_name)),
+          Pathname('~')/'Library'/'Keychains'/keychain_name.expand_path.to_s,
           certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
         )
       end
