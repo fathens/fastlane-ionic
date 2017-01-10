@@ -17,7 +17,7 @@ module Fastlane
       end
 
       def self.latest_build_tool
-        ssh("android list sdk --no-ui --all --extended | grep build-tools").lines.map { |line|
+        sh("android list sdk --no-ui --all --extended | grep build-tools").lines.map { |line|
           line.chomp.match(/^.*\"build-toos-(.+)\".*$/)[1]
         }.sort.last
       end
