@@ -25,7 +25,7 @@ module Fastlane
         UI.message "Using profile: #{profile}"
         signId = "iPhone Distribution: #{profile['TeamName']} (#{profile['TeamIdentifier'].first})"
 
-        open(dirPlatform/'cordova'/'build-extras.xcconfig', 'a') { |f|
+        open(Pathname('platforms')/'ios'/'cordova'/'build-extras.xcconfig', 'a') { |f|
           f.puts "CODE_SIGN_IDENTITY[sdk=iphoneos*] = #{signId}"
         }
       end
