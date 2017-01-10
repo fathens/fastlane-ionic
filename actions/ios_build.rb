@@ -10,15 +10,13 @@ module Fastlane
       end
 
       def self.keychain(certificate_path)
-        if is_ci?
-          keychainName = sh("security default-keychain").match(/.*\/([^\/]+)\"/)[1]
-          puts "Using keychain: #{keychainName}"
-          import_certificate(
-            keychain_name: keychainName,
-            certificate_path: certificate_path,
-            certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
-          )
-        end
+        keychainName = sh("security default-keychain").match(/.*\/([^\/]+)\"/)[1]
+        puts "Using keychain: #{keychainName}"
+        import_certificate(
+          keychain_name: keychainName,
+          certificate_path: certificate_path,
+          certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
+        )
       end
 
       def self.provisioning(profile_path)
