@@ -5,6 +5,14 @@ fastlane documentation
 sudo gem install fastlane
 ```
 # Available Actions
+### upload_persistent
+```
+fastlane upload_persistent
+```
+
+
+----
+
 ## iOS
 ### ios clean
 ```
