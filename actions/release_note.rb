@@ -45,8 +45,9 @@ module Fastlane
         end
         prefix = "deployed/#{ENV['FASTLANE_PLATFORM_NAME']}/#{ENV['BUILD_MODE']}/"
         num = sh("git tag -l | grep '#{prefix}' || echo").lines.map { |line|
-          line.chomp.match(/.*\/([0-9]+)$/)[1].to_i
-        }.select { |n|
+          m = line.chomp.match(/.*\/([0-9]+)$/)
+          m ? m[1].to_i : nil
+        }.compact.select { |n|
           n < ENV['BUILD_NUM'].to_i
         }.max
         num ? "#{prefix}#{num}" : 'HEAD'
