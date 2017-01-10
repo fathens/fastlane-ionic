@@ -18,12 +18,16 @@ module Fastlane
       def self.predir
         put_file = lambda { |target, content|
           FileUtils.mkdir_p(target.dirname)
-          File.write(target, content)
+          target.write content
+          target
         }
         put_file[Pathname(ENV['HOME'])/'.android'/'.keep', '']
         put_file[Pathname(ENV['ANDROID_HOME'])/'licenses'/'android-sdk-license',
           '\n8933bad161af4178b1185d1a37fbf41ea5269c55'
         ]
+        put_file[Pathname('hooks')/'before_plugin_add'/'enable_auto_download.sh',
+          'echo -e "\nandroid.builder.sdkDownload=true" >> platforms/android/gradle.properties'
+        ].chmod(0755)
       end
 
       def self.build_num
