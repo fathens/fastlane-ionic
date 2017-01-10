@@ -37,12 +37,16 @@ module Fastlane
       end
 
       def self.update_sdk
+        build_tools = sh("android list sdk --no-ui --all --extended | grep build-tools").lines.map { |line|
+          line.chomp.match(/^.*\"(.+)\".*$/)[1]
+        }.compact.sort
+
         require 'rexml/document'
 
         config = REXML::Document.new(Pathname('config.xml').read)
         api_version = config.elements['//platform[@name="android"]']&.attribute('api-version')&.value || '24'
         puts "Using Android API: #{api_version}"
-        sdks = ["android-#{api_version}", "platform-tools", "tools", "build-tools"]
+        sdks = ["android-#{api_version}", "platform-tools", "tools", build_tools.last]
         sh("echo y | android update sdk -u --filter #{sdks.join ','}")
       end
 
