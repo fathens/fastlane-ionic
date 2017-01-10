@@ -16,18 +16,12 @@ module Fastlane
       end
 
       def self.predir
-        FileUtils.mkdir_p "~/.android"
-
         put_file = lambda { |target, content|
           FileUtils.mkdir_p(target.dirname)
           File.write(target, content)
         }
-        put_file[
-          Pathname('platforms')/'android'/'gradle.properties',
-          'android.builder.sdkDownload=true'
-        ]
-        put_file[
-          Pathname(ENV['ANDROID_HOME'])/'licenses'/'android-sdk-license',
+        put_file[Pathname(ENV['HOME'])/'.android'/'.keep', '']
+        put_file[Pathname(ENV['ANDROID_HOME'])/'licenses'/'android-sdk-license',
           '\n8933bad161af4178b1185d1a37fbf41ea5269c55'
         ]
       end
@@ -73,6 +67,7 @@ module Fastlane
             file.puts line
           end
           file.puts "#{key}=#{multi}"
+          file.puts "android.builder.sdkDownload=true"
         end
 
         File.absolute_path target
