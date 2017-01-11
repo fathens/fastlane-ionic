@@ -25,6 +25,7 @@ module Fastlane
         UI.message "Using profile: #{profile}"
 
         dir = Pathname('~').expand_path/'Library'/'MobileDevice'/'Provisioning Profiles'
+        FileUtils.mkdir_p dir
         FileUtils.copy profile_path, dir/"#{profile['UUID']}.mobileprovision"
 
         open(Pathname('platforms')/'ios'/'cordova'/'build-extras.xcconfig', 'a') { |f|
