@@ -28,7 +28,7 @@ module Fastlane
         FileUtils.mkdir_p dir
         FileUtils.copy profile_path, dir/"#{profile['UUID']}.mobileprovision"
 
-        open(Pathname('platforms')/'ios'/'cordova'/'build-extras.xcconfig', 'a') { |f|
+        (Pathname('platforms')/'ios'/'cordova'/'build.xcconfig').open('a') { |f|
           f.puts "DEVELOPMENT_TEAM = #{profile['TeamIdentifier'].first}"
           f.puts "PROVISIONING_PROFILE_SPECIFIER = #{profile['UUID']}"
         }
