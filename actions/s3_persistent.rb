@@ -53,6 +53,7 @@ module Fastlane
           bucket: ENV['AWS_S3_BUCKET'],
           key: "#{ENV['PROJECT_REPO_SLUG']}/persistent.zip"
         )
+        puts "Done to upload persistents"
       end
 
       def self.download(basedir)
