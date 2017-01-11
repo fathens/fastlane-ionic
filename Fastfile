@@ -205,7 +205,7 @@ def deploy_appetize
       path: target_file.to_s
     )
   ensure
-    target_file.delete if target_file.to_s.end_with("zip")
+    target_file.delete if target_file.to_s.end_with? "zip"
   end
 end
 
