@@ -12,9 +12,9 @@ module Fastlane
 
         case params[:command]
         when 'upload'
-          return upload(basedir)
+          upload(basedir)
         when 'download'
-          return download(basedir)
+          download(basedir)
         end
       end
 

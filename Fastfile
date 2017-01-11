@@ -228,7 +228,7 @@ def zip_dir(basedir)
       zip.add(file.relative_path_from(basedir), file)
     end
   end
-  return zipfile
+  zipfile.realpath
 end
 
 def each_file(dir, &block)
