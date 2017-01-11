@@ -5,11 +5,9 @@ module Fastlane
         notes = logs(params[:line_format]).join("\n")
 
         UI.message "#### RELEASE_NOTE ####\n" + notes
-        if !notes.empty? then
-          target = Pathname('.release_note')
-          target.write notes
-          target.realpath
-        end
+        target = Pathname('.release_note')
+        target.write notes
+        target.realpath
       end
 
       def self.logs(format)
