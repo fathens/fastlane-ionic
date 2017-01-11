@@ -23,10 +23,13 @@ module Fastlane
       def self.provisioning(profile_path)
         profile = FastlaneCore::ProvisioningProfile.parse profile_path
         UI.message "Using profile: #{profile}"
-        signId = "iPhone Distribution: #{profile['TeamName']} (#{profile['TeamIdentifier'].first})"
+
+        dir = Pathname('~').expand_path/'Library'/'MobileDevice'/'Provisioning Profiles'
+        FileUtils.copy profile_path, dir/"#{profile['UUID']}.mobileprovision"
 
         open(Pathname('platforms')/'ios'/'cordova'/'build-extras.xcconfig', 'a') { |f|
-          f.puts "CODE_SIGN_IDENTITY[sdk=iphoneos*] = #{signId}"
+          f.puts "DEVELOPMENT_TEAM = #{profile['TeamIdentifier'].first}"
+          f.puts "PROVISIONING_PROFILE_SPECIFIER = #{profile['UUID']}"
         }
       end
 
