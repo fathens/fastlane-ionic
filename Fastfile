@@ -222,10 +222,10 @@ def zip_dir(basedir)
   require_relative './lib/gem_install'
   GemInstall.req({"rubyzip" => "zip"})
 
-  zipfile = Pathnae.pwd/'.tmp-artifact.zip'
+  zipfile = Pathname('.tmp-artifact.zip')
   Zip::File.open(zipfile, Zip::File::CREATE) do |zip|
     each_file(basedir) do |file|
-      zip.file.add(file.relative_path_from basedir, file)
+      zip.add(file.relative_path_from(basedir), file)
     end
   end
   return zipfile
