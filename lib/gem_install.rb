@@ -19,8 +19,8 @@ module GemInstall
       cmd = Gem::Commands::InstallCommand.new
       cmd.handle_options ["--no-ri", "--no-rdoc", gem_name]
       cmd.execute
-    rescue Gem::SystemExitException => e
-      puts "DONE: #{e.exit_code}"
+    rescue Gem::SystemExitException => ex
+      raise ex if ex.exit_code != 0
     end
     require mod_name
   end
