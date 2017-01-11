@@ -185,19 +185,21 @@ end
 def deploy_appetize
   only_mobile
 
-  begin
-    zipfile = if is_android? then
-        zip_dir(dirPlatform/'build'/'outputs'/'apk')
-      else
-        app_path = dirPersistent/'build'/'emulator'/"#{ENV["APPLICATION_DISPLAY_NAME"]}.app"
-        if !app_path.exist? then
-          Dir.chdir(dirPersistent.dirname.dirname) do
-            puts "Because runs on simulator, we need to rebuild."
-            sh("cordova build ios --release --emulator")
-          end
-        end
-        zip_dir(app_path.dirname)
+  if is_android? then
+    basedir = dirPlatform/'build'/'outputs'/'apk'
+  else
+    app_path = dirPersistent/'build'/'emulator'/"#{ENV["APPLICATION_DISPLAY_NAME"]}.app"
+    if !app_path.exist? then
+      Dir.chdir(dirPersistent.dirname.dirname) do
+        puts "Because runs on simulator, we need to rebuild."
+        sh("cordova build ios --release --emulator")
       end
+    end
+    basedir = app_path.dirname
+  end
+
+  begin
+    zipfile = zip_dir(basedir)
     appetize(
       platform: ENV["FASTLANE_PLATFORM_NAME"],
       api_token: ENV["APPETIZE_API_TOKEN"],
