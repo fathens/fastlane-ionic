@@ -138,6 +138,9 @@ after_all do |lane, options|
 end
 
 def deploy_s3site
+  s3_site_deploy(
+    src_path: 'www',
+    bucket: ENV['S3_SITE_BUCKET'])
 end
 
 def deploy_store
