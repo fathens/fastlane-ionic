@@ -44,13 +44,15 @@ before_all do |lane, options|
   clean if options[:clean]
   if lane != :upload_persistent then
     begin
-      s3_persistent(command: 'download')
+      s3_persistent(command: 'download',
+        bucket: ENV['AWS_S3_BUCKET'],
+        path: ENV['PROJECT_REPO_SLUG'])
     rescue => ex
       raise ex if is_ci?
       print "S3 Persistent is not found. Do you want to upload now ? (y/n) "
       a = STDIN.gets.chomp
       if a == 'y' || a == 'Y' then
-        s3_persistent(command: 'upload')
+        upload_persistent
       else
         raise ex
       end
@@ -60,7 +62,9 @@ before_all do |lane, options|
 end
 
 lane :upload_persistent do
-  s3_persistent(command: 'upload')
+  s3_persistent(command: 'upload',
+    bucket: ENV['AWS_S3_BUCKET'],
+    path: ENV['PROJECT_REPO_SLUG'])
 end
 
 platform :ios do

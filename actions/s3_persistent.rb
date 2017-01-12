@@ -12,9 +12,9 @@ module Fastlane
 
         case params[:command]
         when 'upload'
-          upload(basedir)
+          upload(basedir, params[:bucket], params[:path])
         when 'download'
-          download(basedir)
+          download(basedir, params[:bucket], params[:path])
         end
       end
 
@@ -32,7 +32,7 @@ module Fastlane
         }
       end
 
-      def self.upload(basedir)
+      def self.upload(basedir, bucket, dirpath)
         puts "Uploading persistents..."
 
         buffer = Zip::OutputStream.write_buffer(::StringIO.new('')) { |zip|
@@ -50,18 +50,18 @@ module Fastlane
         s3 = Aws::S3::Client.new
         s3.put_object(
           body: buffer.string,
-          bucket: ENV['AWS_S3_BUCKET'],
-          key: "#{ENV['PROJECT_REPO_SLUG']}/persistent.zip"
+          bucket: bucket,
+          key: "#{dirpath}/persistent.zip"
         )
         puts "Done to upload persistents"
       end
 
-      def self.download(basedir)
+      def self.download(basedir, bucket, dirpath)
         puts "Downloading persistents..."
         s3 = Aws::S3::Client.new
         res = s3.get_object(
-          bucket: ENV['AWS_S3_BUCKET'],
-          key: "#{ENV['PROJECT_REPO_SLUG']}/persistent.zip"
+          bucket: bucket,
+          key: "#{dirpath}/persistent.zip"
         )
         zip = Zip::InputStream.new(res.body)
         while (entry = zip.get_next_entry) do
@@ -86,6 +86,16 @@ module Fastlane
         [
           FastlaneCore::ConfigItem.new(key: :command,
           description: "'upload' | 'download'",
+          optional: false,
+          is_string: true
+          ),
+          FastlaneCore::ConfigItem.new(key: :bucket,
+          description: "Bucket name of S3",
+          optional: false,
+          is_string: true
+          ),
+          FastlaneCore::ConfigItem.new(key: :path,
+          description: "Path in S3 to dir which continas archive file",
           optional: false,
           is_string: true
           )
