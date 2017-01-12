@@ -16,23 +16,24 @@ def is_release?
   ["release"].include? ENV['BUILD_MODE']
 end
 
-def clean
-  def del(*path)
-    target = $PROJECT_DIR.join(*path)
-    if target.exist? then
-      if target.directory? then
-        if !(target/'.keep').exist? then
-          puts "Deleting dir: #{target.realpath}"
-          FileUtils.rm_rf target
-        end
-      else
-        if !Pathname("#{target.to_s}.keep").exist? then
-          puts "Deleting file: #{target.realpath}"
-          target.delete
-        end
+def del(*path)
+  target = $PROJECT_DIR.join(*path)
+  if target.exist? then
+    if target.directory? then
+      if !(target/'.keep').exist? then
+        puts "Deleting dir: #{target.realpath}"
+        FileUtils.rm_rf target
+      end
+    else
+      if !Pathname("#{target.to_s}.keep").exist? then
+        puts "Deleting file: #{target.realpath}"
+        target.delete
       end
     end
   end
+end
+
+def clean
   del('config.xml')
   del('resources', ENV["FASTLANE_PLATFORM_NAME"])
   del('platforms')
@@ -105,9 +106,9 @@ platform :android do
   end
 end
 
-platform :web do
+platform :mac do
   lane :clean do
-    clean
+    del('www')
   end
 
   lane :build do
@@ -121,7 +122,7 @@ end
 after_all do |lane, options|
   if lane != :upload_persistent then
     if is_ci? then
-      if ENV["FASTLANE_PLATFORM_NAME"] == 'web' then
+      if ENV["FASTLANE_PLATFORM_NAME"] == 'mac' then
         deploy_s3site
       else
         if is_release? then
