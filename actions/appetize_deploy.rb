@@ -21,11 +21,10 @@ module Fastlane
         query[:note] = note if !(note || '').empty?
 
         uri = URI.parse("https://#{api_token}@api.appetize.io/v1/apps/#{public_key}")
-        res = Net::HTTP.start(uri.host, uri.port) { |http|
-          http.use_ssl = true
-          Net::HTTP::Post::Multipart.new(uri.path, query)
-          JSON.parse(http.request(req).body)
-        }
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = true
+        Net::HTTP::Post::Multipart.new(uri.path, query)
+        JSON.parse(http.request(req).body)
 
         puts JSON.pretty_generate(res)
         res['publicKey']
@@ -36,11 +35,10 @@ module Fastlane
         url = "#{url}?nextKey=#{next_key}" if next_key
 
         uri = URI.parse(url)
-        res = Net::HTTP.start(uri.host, uri.port) { |http|
-          http.use_ssl = true
-          req = Net::HTTP::Get.new(url.path)
-          JSON.parse(http.request(req).body)
-        }
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = true
+        req = Net::HTTP::Get.new(url.path)
+        JSON.parse(http.request(req).body)
 
         found = res['data'].find { |app|
           app['platform'] == platform && app['bundle'] == package_id
