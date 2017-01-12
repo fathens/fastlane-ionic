@@ -200,9 +200,9 @@ def deploy_appetize
   if is_android? then
     target_file = dirPlatform/'build'/'outputs'/'apk'/'android-release.apk'
   else
-    app_path = dirPersistent/'build'/'emulator'/"#{ENV["APPLICATION_DISPLAY_NAME"]}.app"
+    app_path = dirPlatform/'build'/'emulator'/"#{ENV["APPLICATION_DISPLAY_NAME"]}.app"
     if !app_path.exist? then
-      Dir.chdir(dirPersistent.dirname.dirname) do
+      Dir.chdir(dirPlatform.dirname.dirname) do
         puts "Because runs on simulator, we need to rebuild."
         sh("cordova build ios --release --emulator")
       end
