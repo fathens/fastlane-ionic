@@ -14,8 +14,8 @@ module Fastlane
 
       def self.upload(platform, zipfile, api_token, notes_path, public_key)
         query = {
-          platform => platform,
-          file => UploadIO.new(zipfile, 'application/zip')
+          platform: platform,
+          file: UploadIO.new(zipfile, 'application/zip')
         }
         note = notes_path.read if notes_path
         query[:note] = note if !(note || '').empty?
@@ -23,22 +23,21 @@ module Fastlane
         uri = URI.parse("https://#{api_token}@api.appetize.io/v1/apps/#{public_key}")
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = true
-        Net::HTTP::Post::Multipart.new(uri.path, query)
-        JSON.parse(http.request(req).body)
+        req = Net::HTTP::Post::Multipart.new(uri.path, query)
+        res = JSON.parse(http.request(req).body)
 
         puts JSON.pretty_generate(res)
         res['publicKey']
       end
 
       def self.get_public_key(platform, api_token, package_id, next_key = nil)
-        url = "https://#{api_token}@api.appetize.io/v1/apps"
-        url = "#{url}?nextKey=#{next_key}" if next_key
+        uri = URI.parse("https://#{api_token}@api.appetize.io/v1/apps")
+        uri.query = URI.encode_www_form({ nextKey: next_key }) if next_key
 
-        uri = URI.parse(url)
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = true
-        req = Net::HTTP::Get.new(url.path)
-        JSON.parse(http.request(req).body)
+        req = Net::HTTP::Get.new(uri.path)
+        res = JSON.parse(http.request(req).body)
 
         found = res['data'].find { |app|
           app['platform'] == platform && app['bundle'] == package_id
