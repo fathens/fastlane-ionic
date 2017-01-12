@@ -2,22 +2,24 @@ module Fastlane
   module Actions
     class IosBuildAction < Action
       def self.run(params)
-        keychain(params[:cert_path], params[:p12_path])
+        keychain(
+          params[:develop_cert_path], params[:develop_cert_password],
+          params[:distrib_cert_path], params[:distrib_cert_password])
         sh("cordova platform add ios")
         sh("cordova prepare ios")
         provisioning(params[:profile_path])
         sh("cordova build ios --release --device")
       end
 
-      def self.keychain(cert_path, p12_path)
+      def self.keychain(dev_path, dev_password, dist_path, dist_password)
         keychain_name = sh("security default-keychain").match(/.*\/([^\/]+)\"/)[1]
         puts "Using keychain: #{keychain_name}"
-        keychain = Pathname('~').expand_path/'Library'/'Keychains'/keychain_name
+        keychain = (Pathname('~').expand_path/'Library'/'Keychains'/keychain_name).to_s
 
-        FastlaneCore::KeychainImporter.import_file(cert_path.to_s, keychain.to_s)
-        FastlaneCore::KeychainImporter.import_file(p12_path.to_s, keychain.to_s,
-          certificate_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"]
-        )
+        FastlaneCore::KeychainImporter.import_file(dev_path.to_s, keychain,
+          certificate_password: dev_password)
+        FastlaneCore::KeychainImporter.import_file(dist_path.to_s, keychain,
+          certificate_password: dist_password)
       end
 
       def self.provisioning(profile_path)
@@ -73,15 +75,25 @@ module Fastlane
 
       def self.available_options
         [
-          FastlaneCore::ConfigItem.new(key: :cert_path,
+          FastlaneCore::ConfigItem.new(key: :develop_cert_path,
+          description: "Path to development certificate",
+          optional: false,
+          is_string: false
+          ),
+          FastlaneCore::ConfigItem.new(key: :distrib_cert_path,
           description: "Path to distribution certificate",
           optional: false,
           is_string: false
           ),
-          FastlaneCore::ConfigItem.new(key: :p12_path,
-          description: "Path to distribution certificate key",
+          FastlaneCore::ConfigItem.new(key: :develop_cert_password,
+          description: "Password for development certificate",
           optional: false,
-          is_string: false
+          is_string: true
+          ),
+          FastlaneCore::ConfigItem.new(key: :distrib_cert_password,
+          description: "Password for distribution certificate",
+          optional: false,
+          is_string: true
           ),
           FastlaneCore::ConfigItem.new(key: :profile_path,
           description: "Path to provisioning profile path",

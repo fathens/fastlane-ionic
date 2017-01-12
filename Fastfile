@@ -72,8 +72,10 @@ platform :ios do
     cordova_assets(app_id: ENV["APP_IDENTIFIER"] = ENV['IOS_BUNDLE_ID'])
 
     ios_build(
-      cert_path: persistent("Distribution.cer"),
-      p12_path: persistent("Distribution.p12"),
+      develop_cert_path: persistent("Development.p12"),
+      distrib_cert_path: persistent("Distribution.p12"),
+      develop_cert_password: ENV["IOS_DEVELOPMENT_KEY_PASSWORD"],
+      distrib_cert_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"],
       profile_path: is_release? ? persistent('Profile_AppStore.mobileprovision') : persistent('Profile_AdHoc.mobileprovision')
     )
   end
