@@ -140,15 +140,7 @@ end
 def deploy_s3site
 end
 
-def only_mobile
-  if !['android', 'ios'].include? ENV["FASTLANE_PLATFORM_NAME"] then
-    raise "Unsupported platform: #{ENV["FASTLANE_PLATFORM_NAME"]}"
-  end
-end
-
 def deploy_store
-  only_mobile
-
   if is_android? then
     Pathnae.glob(dirPlatform/'build'/'outputs'/'apk'/'android-*-release.apk').each { |apk|
       supply(
@@ -174,8 +166,6 @@ def deploy_store
 end
 
 def deploy_crashlytics
-  only_mobile
-
   if is_android? then
     apk_path = (dirPlatform/'build'/'outputs'/'apk'/'android-release.apk').to_s
   else
