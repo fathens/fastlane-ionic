@@ -105,6 +105,19 @@ platform :android do
   end
 end
 
+platform :web do
+  lane :clean do
+    clean
+  end
+
+  lane :build do
+    Dir.chdir($PROJECT_DIR) do
+      sh("npm install")
+      sh("npm run ionic:build")
+    end
+  end
+end
+
 after_all do |lane, options|
   if lane != :upload_persistent then
     if is_ci? then
