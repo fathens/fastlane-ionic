@@ -37,11 +37,6 @@ module Fastlane
           "DEVELOPMENT_TEAM" => profile['TeamIdentifier'].first,
           "PROVISIONING_PROFILE" => profile['UUID']
         }
-        config_values.keys.each { |key|
-          [].each { |sub|
-            config_values["#{key}[#{sub}]"] = config_values[key]
-          }
-        }
         rewrite(Pathname('platforms')/'ios'/'cordova'/'build.xcconfig', config_values)
       end
 
@@ -51,8 +46,8 @@ module Fastlane
         xcconfig.open('r') { |src|
           xcconfig_tmp.open('w') { |dst|
             src.each_line { |line|
-              found = config_values.keys.find_index { |key|
-                line.start_with? "#{key} ="
+              found = config_values.keys.find { |key|
+                line.match("#{key} *=")
               }
               dst.puts line if !found
             }
