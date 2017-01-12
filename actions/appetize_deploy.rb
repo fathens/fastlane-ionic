@@ -3,10 +3,14 @@ module Fastlane
     class AppetizeDeployAction < Action
       def self.run(params)
         platform = params[:platform] || ENV["FASTLANE_PLATFORM_NAME"]
-        public_key = get_public_key(platform, params[:api_token], params[:package_id])
-        zipfile = mk_zipfile(platform, params[:path], params[:app_name] || ENV['APPLICATION_DISPLAY_NAME'])
+        api_token = params[:api_token] || ENV["APPETIZE_API_TOKEN"]
+        package_id = params[:package_id] || ENV["APP_IDENTIFIER"]
+        app_name = params[:app_name] || ENV['APPLICATION_DISPLAY_NAME']
+
+        public_key = get_public_key(platform, api_token, package_id)
+        zipfile = mk_zipfile(platform, params[:path], app_name)
         begin
-          upload(platform, zipfile, params[:api_token] || ENV["APPETIZE_API_TOKEN"], params[:notes_path], public_key)
+          upload(platform, zipfile, api_token, params[:notes_path], public_key)
         ensure
           zipfile.delete if zipfile.exist?
         end
