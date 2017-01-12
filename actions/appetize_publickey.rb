@@ -5,11 +5,11 @@ module Fastlane
         require_relative '../lib/gem_install'
         GemInstall.req("httparty")
 
-        retrieve(params[:api_token], params[:package_id])
+        platform = params[:platform] || ENV["FASTLANE_PLATFORM_NAME"]
+        retrieve(platform, params[:api_token], params[:package_id])
       end
 
-      def self.retrieve(api_token, package_id, next_key = nil)
-        platform = ENV["FASTLANE_PLATFORM_NAME"]
+      def self.retrieve(platform, api_token, package_id, next_key = nil)
         url = "https://#{api_token}@api.appetize.io/v1/apps"
         url = "#{url}?nextKey=#{next_key}" if next_key
 
@@ -19,10 +19,13 @@ module Fastlane
           app['platform'] == platform && app['bundle'] == package_id
         }
         if found then
+          UI.message "Found Appetize App: #{found}"
           found['publicKey']
         else
           if res['hasMore'] then
-            retrieve(api_token, package_id, res['nextKey'])
+            retrieve(platform, api_token, package_id, res['nextKey'])
+          else
+            UI.message "Not found Appetize App on '#{platform}': #{package_id}"
           end
         end
       end
@@ -45,6 +48,11 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :package_id,
           description: "Android Package or iOS Bundle",
           optional: false,
+          is_string: true
+          ),
+          FastlaneCore::ConfigItem.new(key: :platform,
+          description: "Platform name for search",
+          optional: true,
           is_string: true
           )
         ]
