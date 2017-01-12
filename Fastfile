@@ -108,7 +108,7 @@ end
 after_all do |lane, options|
   if lane != :upload_persistent then
     if is_ci? then
-      if is_web? then
+      if ENV["FASTLANE_PLATFORM_NAME"] == 'web' then
         deploy_s3site
       else
         if is_release? then
@@ -119,7 +119,7 @@ after_all do |lane, options|
           rescue => ex
             puts "Failed to upload to Crashlytics Beta: #{ex}"
             puts "Trying to upload to Appetize.io"
-            deploy_appetize
+            appetize_deploy
           end
         end
       end
@@ -141,7 +141,7 @@ def deploy_s3site
 end
 
 def deploy_store
-  if is_android? then
+  if ENV["FASTLANE_PLATFORM_NAME"] == 'android' then
     Pathnae.glob(dirPlatform/'build'/'outputs'/'apk'/'android-*-release.apk').each { |apk|
       supply(
         apk: apk.to_s,
@@ -166,7 +166,7 @@ def deploy_store
 end
 
 def deploy_crashlytics
-  if is_android? then
+  if ENV["FASTLANE_PLATFORM_NAME"] == 'android' then
     apk_path = (dirPlatform/'build'/'outputs'/'apk'/'android-release.apk').to_s
   else
     ipa_path = (dirPlatform/"#{ENV["APPLICATION_DISPLAY_NAME"]}.ipa").to_s
@@ -182,16 +182,4 @@ def deploy_crashlytics
     notifications: false,
     debug: false
   )
-end
-
-def deploy_appetize
-  appetize_deploy
-end
-
-def is_web?
-  ENV["FASTLANE_PLATFORM_NAME"] == 'web'
-end
-
-def is_android?
-  ENV["FASTLANE_PLATFORM_NAME"] == 'android'
 end
