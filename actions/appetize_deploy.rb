@@ -4,9 +4,9 @@ module Fastlane
       def self.run(params)
         platform = params[:platform] || ENV["FASTLANE_PLATFORM_NAME"]
         public_key = get_public_key(platform, params[:api_token], params[:package_id])
-        zipfile = mk_zipfile(platform, params[:path])
+        zipfile = mk_zipfile(platform, params[:path], params[:app_name] || ENV['APPLICATION_DISPLAY_NAME'])
         begin
-          upload(platform, zipfile, params[:api_token], params[:notes_path], public_key)
+          upload(platform, zipfile, params[:api_token] || ENV["APPETIZE_API_TOKEN"], params[:notes_path], public_key)
         ensure
           zipfile.delete if zipfile.exist?
         end
@@ -54,13 +54,13 @@ module Fastlane
         end
       end
 
-      def mk_zipfile(platform, path)
+      def mk_zipfile(platform, path, app_name)
         if !path then
           platform_dir = Pathname.pwd.realpath/'platform'/platform
           if platform == 'android' then
             path = platform_dir/'build'/'outputs'/'apk'/'android-release.apk'
           else
-            path = platform_dir/'build'/'emulator'/"#{ENV['APPLICATION_DISPLAY_NAME']}.app"
+            path = platform_dir/'build'/'emulator'/"#{app_name}.app"
           end
         end
 
@@ -110,13 +110,15 @@ module Fastlane
       def self.available_options
         [
           FastlaneCore::ConfigItem.new(key: :api_token,
+          env_name: 'APPETIZE_API_TOKEN',
           description: "Appetize.io api token",
-          optional: false,
+          optional: true,
           is_string: true
           ),
           FastlaneCore::ConfigItem.new(key: :package_id,
+          env_name: 'APP_IDENTIFIER',
           description: "Android Package or iOS Bundle",
-          optional: false,
+          optional: true,
           is_string: true
           ),
           FastlaneCore::ConfigItem.new(key: :path,
@@ -130,7 +132,14 @@ module Fastlane
           is_string: false
           ),
           FastlaneCore::ConfigItem.new(key: :platform,
+          env_name: 'FASTLANE_PLATFORM_NAME',
           description: "Platform name for search",
+          optional: true,
+          is_string: true
+          ),
+          FastlaneCore::ConfigItem.new(key: :app_name,
+          env_name: 'APPLICATION_DISPLAY_NAME',
+          description: "Application name for display",
           optional: true,
           is_string: true
           )

@@ -96,7 +96,7 @@ platform :android do
   end
 
   lane :build do
-    cordova_assets(app_id: ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'])
+    cordova_assets(app_id: ENV["APP_IDENTIFIER"] = ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'])
 
     android_build(
       keystore: persistent('keystore'),
@@ -195,10 +195,7 @@ def deploy_crashlytics
 end
 
 def deploy_appetize
-  appetize_deploy(
-    api_token: ENV["APPETIZE_API_TOKEN"],
-    package_id: is_android? ? ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'] : ENV['IOS_BUNDLE_ID']
-  )
+  appetize_deploy
 end
 
 def is_web?
