@@ -24,10 +24,11 @@ module Fastlane
         note = notes_path.read if notes_path
         query[:note] = note if !(note || '').empty?
 
-        uri = URI.parse("https://#{api_token}@api.appetize.io/v1/apps/#{public_key}")
+        uri = URI.parse("https://api.appetize.io/v1/apps/#{public_key}")
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = true
         req = Net::HTTP::Post::Multipart.new(uri.path, query)
+        req.basic_auth(api_token, nil)
         res = JSON.parse(http.request(req).body)
 
         puts JSON.pretty_generate(res)
@@ -35,12 +36,13 @@ module Fastlane
       end
 
       def self.get_public_key(platform, api_token, package_id, next_key = nil)
-        uri = URI.parse("https://#{api_token}@api.appetize.io/v1/apps")
+        uri = URI.parse("https://api.appetize.io/v1/apps")
         uri.query = URI.encode_www_form({ nextKey: next_key }) if next_key
 
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = true
         req = Net::HTTP::Get.new(uri.path)
+        req.basic_auth(api_token, nil)
         res = JSON.parse(http.request(req).body)
 
         found = res['data'].find { |app|
