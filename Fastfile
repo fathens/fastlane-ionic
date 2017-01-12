@@ -203,7 +203,11 @@ def deploy_appetize
     appetize(
       platform: ENV["FASTLANE_PLATFORM_NAME"],
       api_token: ENV["APPETIZE_API_TOKEN"],
-      path: target_file.to_s
+      path: target_file.to_s,
+      public_key: appetize_publickey(
+        api_token: ENV["APPETIZE_API_TOKEN"],
+        package_id: is_android? ? ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'] : ENV['IOS_BUNDLE_ID']
+      )
     )
   ensure
     target_file.delete if target_file.to_s.end_with? "zip"
