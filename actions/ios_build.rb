@@ -34,16 +34,14 @@ module Fastlane
         FileUtils.copy develop_profile_path, dir/"#{dev_uuid}.mobileprovision"
 
         config_values = {
-          "CODE_SIGN_IDENTITY" => "iPhone Distribution: #{profile['TeamName']} (#{profile['TeamIdentifier'].first})",
           "DEVELOPMENT_TEAM" => profile['TeamIdentifier'].first,
           "PROVISIONING_PROFILE" => profile['UUID']
         }
         config_values.keys.each { |key|
-          ["sdk=iphoneos*", "sdk=*"].each { |sub|
+          [].each { |sub|
             config_values["#{key}[#{sub}]"] = config_values[key]
           }
         }
-        rewrite(Pathname('platforms')/'ios'/'cordova'/'build-release.xcconfig', config_values)
         rewrite(Pathname('platforms')/'ios'/'cordova'/'build.xcconfig', config_values)
       end
 
