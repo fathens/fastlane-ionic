@@ -28,10 +28,39 @@ module Fastlane
         FileUtils.mkdir_p dir
         FileUtils.copy profile_path, dir/"#{profile['UUID']}.mobileprovision"
 
-        (Pathname('platforms')/'ios'/'cordova'/'build.xcconfig').open('a') { |f|
-          f.puts "DEVELOPMENT_TEAM = #{profile['TeamIdentifier'].first}"
-          f.puts "PROVISIONING_PROFILE_SPECIFIER = #{profile['UUID']}"
+        config_values = {
+          "CODE_SIGN_IDENTITY" => "iPhone Distribution: #{profile['TeamName']} (#{profile['TeamIdentifier'].first})",
+          "DEVELOPMENT_TEAM" => profile['TeamIdentifier'].first,
+          "PROVISIONING_PROFILE" => profile['UUID']
         }
+        config_values.keys.each { |key|
+          ["sdk=iphoneos*", "sdk=*"].each { |sub|
+            config_values["#{key}[#{sub}]"] = config_values[key]
+          }
+        }
+        rewrite(Pathname('platforms')/'ios'/'cordova'/'build-release.xcconfig', config_values)
+        rewrite(Pathname('platforms')/'ios'/'cordova'/'build.xcconfig', config_values)
+      end
+
+      def self.rewrite(xcconfig, config_values)
+        xcconfig_tmp = Pathname("#{xcconfig}.tmp")
+
+        xcconfig.open('r') { |src|
+          xcconfig_tmp.open('w') { |dst|
+            src.each_line { |line|
+              found = config_values.keys.find_index { |key|
+                line.start_with? "#{key} ="
+              }
+              dst.puts line if !found
+            }
+            dst.puts "", "// Code Signing"
+            config_values.each { |key, value|
+              dst.puts "#{key} = #{value}"
+            }
+          }
+        }
+        xcconfig_tmp.rename xcconfig
+        UI.message "Wrote #{xcconfig}"
       end
 
       #####################################################
