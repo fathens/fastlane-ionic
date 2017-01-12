@@ -61,7 +61,7 @@ module Fastlane
           if platform == 'android' then
             path = platform_dir/'build'/'outputs'/'apk'/'android-release.apk'
           else
-            path = Pathname.glob(platform_dir/'build'/'emulator'/"*.app").first
+            path = platform_dir/'build'/'emulator'/"#{ENV['APPLICATION_DISPLAY_NAME']}.app"
           end
         end
 
