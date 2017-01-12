@@ -7,7 +7,7 @@ module Fastlane
           params[:distrib_cert_path], params[:distrib_cert_password])
         sh("cordova platform add ios")
         sh("cordova prepare ios")
-        provisioning(params[:profile_path])
+        provisioning(params[:target_profile_path], params[:develop_profile_path])
         sh("cordova build ios --release --device")
       end
 
@@ -22,13 +22,16 @@ module Fastlane
           certificate_password: dist_password)
       end
 
-      def self.provisioning(profile_path)
-        profile = FastlaneCore::ProvisioningProfile.parse profile_path
+      def self.provisioning(target_profile_path, develop_profile_path)
+        profile = FastlaneCore::ProvisioningProfile.parse target_profile_path
         UI.message "Using profile: #{profile}"
+
+        dev_uuid = FastlaneCore::ProvisioningProfile.parse(develop_profile_path)['UUID']
 
         dir = Pathname('~').expand_path/'Library'/'MobileDevice'/'Provisioning Profiles'
         FileUtils.mkdir_p dir
-        FileUtils.copy profile_path, dir/"#{profile['UUID']}.mobileprovision"
+        FileUtils.copy target_profile_path, dir/"#{profile['UUID']}.mobileprovision"
+        FileUtils.copy develop_profile_path, dir/"#{dev_uuid}.mobileprovision"
 
         config_values = {
           "CODE_SIGN_IDENTITY" => "iPhone Distribution: #{profile['TeamName']} (#{profile['TeamIdentifier'].first})",
@@ -95,8 +98,13 @@ module Fastlane
           optional: false,
           is_string: true
           ),
-          FastlaneCore::ConfigItem.new(key: :profile_path,
-          description: "Path to provisioning profile path",
+          FastlaneCore::ConfigItem.new(key: :target_profile_path,
+          description: "Path to provisioning profile for use",
+          optional: false,
+          is_string: false
+          ),
+          FastlaneCore::ConfigItem.new(key: :develop_profile_path,
+          description: "Path to provisioning profile for develoment",
           optional: false,
           is_string: false
           )
