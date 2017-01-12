@@ -195,34 +195,10 @@ def deploy_crashlytics
 end
 
 def deploy_appetize
-  only_mobile
-
-  if is_android? then
-    target_file = dirPlatform/'build'/'outputs'/'apk'/'android-release.apk'
-  else
-    app_path = dirPlatform/'build'/'emulator'/"#{ENV["APPLICATION_DISPLAY_NAME"]}.app"
-    if !app_path.exist? then
-      Dir.chdir(dirPlatform.dirname.dirname) do
-        puts "Because runs on simulator, we need to rebuild."
-        sh("cordova build ios --release --emulator")
-      end
-    end
-    target_file = zip_dir(app_path)
-  end
-
-  begin
-    appetize(
-      platform: ENV["FASTLANE_PLATFORM_NAME"],
-      api_token: ENV["APPETIZE_API_TOKEN"],
-      path: target_file.to_s,
-      public_key: appetize_publickey(
-        api_token: ENV["APPETIZE_API_TOKEN"],
-        package_id: is_android? ? ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'] : ENV['IOS_BUNDLE_ID']
-      )
-    )
-  ensure
-    target_file.delete if target_file.to_s.end_with? "zip"
-  end
+  appetize_deploy(
+    api_token: ENV["APPETIZE_API_TOKEN"],
+    package_id: is_android? ? ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'] : ENV['IOS_BUNDLE_ID']
+  )
 end
 
 def is_web?
@@ -231,31 +207,4 @@ end
 
 def is_android?
   ENV["FASTLANE_PLATFORM_NAME"] == 'android'
-end
-
-def zip_dir(basedir)
-  require_relative './lib/gem_install'
-  GemInstall.req({"rubyzip" => "zip"})
-
-  zipfile = Pathname('.tmp-artifact.zip')
-  Zip::File.open(zipfile, Zip::File::CREATE) do |zip|
-    each_file(basedir) do |file|
-      zip.add(file.relative_path_from(basedir), file)
-    end
-  end
-  zipfile.realpath
-end
-
-def each_file(dir, &block)
-  puts "Searching in #{dir}"
-  dir.each_entry { |x|
-    e = dir/x
-    if e != dir && e != dir.dirname then
-      if e.directory? then
-        each_file(e, &block)
-      elsif e.file? then
-        block[e]
-      end
-    end
-  }
 end
