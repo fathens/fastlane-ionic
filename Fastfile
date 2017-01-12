@@ -40,23 +40,27 @@ def clean
   del('www')
 end
 
+def check_persistent
+  begin
+    s3_persistent(command: 'download',
+      bucket: ENV['AWS_S3_BUCKET'],
+      path: ENV['PROJECT_REPO_SLUG'])
+  rescue => ex
+    raise ex if is_ci?
+    print "S3 Persistent is not found. Do you want to upload now ? (y/n) "
+    a = STDIN.gets.chomp
+    if a == 'y' || a == 'Y' then
+      upload_persistent
+    else
+      raise ex
+    end
+  end
+end
+
 before_all do |lane, options|
   clean if options[:clean]
   if lane != :upload_persistent then
-    begin
-      s3_persistent(command: 'download',
-        bucket: ENV['AWS_S3_BUCKET'],
-        path: ENV['PROJECT_REPO_SLUG'])
-    rescue => ex
-      raise ex if is_ci?
-      print "S3 Persistent is not found. Do you want to upload now ? (y/n) "
-      a = STDIN.gets.chomp
-      if a == 'y' || a == 'Y' then
-        upload_persistent
-      else
-        raise ex
-      end
-    end
+    check_persistent if !options[:no_persistent]
     into_mode
   end
 end
