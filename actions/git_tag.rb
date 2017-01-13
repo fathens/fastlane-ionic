@@ -2,7 +2,8 @@ module Fastlane
   module Actions
     class GitTagAction < Action
       def self.run(params)
-        uri = URI("https://api.github.com/repos/#{ENV['PROJECT_REPO_SLUG']}/git/refs")
+        slug = params[:git_path] || ENV['PROJECT_REPO_SLUG']
+        uri = URI("https://api.github.com/repos/#{slug}/git/refs")
         data = {
           :ref => "refs/tags/#{params[:tag_name]}",
           :sha => sh('git log HEAD -n1 --format=%H').strip
@@ -27,6 +28,12 @@ module Fastlane
 
       def self.available_options
         [
+          FastlaneCore::ConfigItem.new(key: :git_path,
+          env_name: 'PROJECT_REPO_SLUG',
+          description: "Path on Github",
+          optional: true,
+          is_string: true
+          ),
           FastlaneCore::ConfigItem.new(key: :username,
           description: "Github username",
           optional: false,
