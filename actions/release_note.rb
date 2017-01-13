@@ -2,7 +2,11 @@ module Fastlane
   module Actions
     class ReleaseNoteAction < Action
       def self.run(params)
-        notes = logs(params[:line_format]).join("\n")
+        platform = params[:platform] || ENV['FASTLANE_PLATFORM_NAME']
+        build_mode = params[:build_mode] || ENV['BUILD_MODE']
+        build_num = (params[:build_num] || ENV['BUILD_NUM']).to_i
+
+        notes = logs(platform, build_mode, build_num, params[:line_format]).join("\n")
 
         UI.message "#### RELEASE_NOTE ####\n" + notes
         target = Pathname('.release_note')
@@ -10,10 +14,10 @@ module Fastlane
         target.realpath
       end
 
-      def self.logs(format)
+      def self.logs(platform, build_mode, build_num, format)
         format ||= '[%h] %s'
 
-        last = last_tag
+        last = last_tag(platform, build_mode, build_num)
         logs = []
         obj = CommitObj.new('HEAD')
         if last
@@ -29,7 +33,7 @@ module Fastlane
         logs
       end
 
-      def self.last_tag
+      def self.last_tag(platform, build_mode, build_num)
         retry_count = 3
         begin
           sh("git fetch")
@@ -41,14 +45,13 @@ module Fastlane
             raise
           end
         end
-        prefix = "deployed/#{ENV['FASTLANE_PLATFORM_NAME']}/#{ENV['BUILD_MODE']}/"
+        prefix = ['deployed', platform, build_mode].join('/') + '/'
         num = sh("git tag -l | grep '#{prefix}' || echo").lines.map { |line|
-          m = line.chomp.match(/.*\/([0-9]+)$/)
-          m ? m[1].to_i : nil
-        }.compact.select { |n|
-          n < ENV['BUILD_NUM'].to_i
+          line.chomp.match(/.*\/([0-9]+)$/)
+        }.compact.select { |m|
+          m[1].to_i < build_num
         }.max
-        num ? "#{prefix}#{num}" : 'HEAD'
+        num ? prefix + num : 'HEAD'
       end
 
       class CommitObj
@@ -85,6 +88,24 @@ module Fastlane
         [
           FastlaneCore::ConfigItem.new(key: :line_format,
           description: "Format of each line. default: '[%h] %s'",
+          optional: true,
+          is_string: true
+          ),
+          FastlaneCore::ConfigItem.new(key: :platform,
+          env_name: 'FASTLANE_PLATFORM_NAME',
+          description: "Platform",
+          optional: true,
+          is_string: true
+          ),
+          FastlaneCore::ConfigItem.new(key: :build_mode,
+          env_name: 'BUILD_MODE',
+          description: "Build Mode",
+          optional: true,
+          is_string: true
+          ),
+          FastlaneCore::ConfigItem.new(key: :build_num,
+          env_name: 'BUILD_NUM',
+          description: "Build Number",
           optional: true,
           is_string: true
           )
