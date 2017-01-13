@@ -29,7 +29,7 @@ module Fastlane
             versionCode.each { |key, value|
               if value then
                 UI.message "Setting '#{key}' = '#{value}' on #{target}"
-                widget.attributes[key] = value
+                widget.attributes[key.to_s] = value
               end
             }
           end
