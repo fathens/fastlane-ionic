@@ -5,14 +5,13 @@ module Fastlane
         platform = params[:platform] || ENV["FASTLANE_PLATFORM_NAME"]
         api_token = params[:api_token] || ENV["APPETIZE_API_TOKEN"]
         package_id = params[:package_id] || ENV["APP_IDENTIFIER"]
-        app_name = params[:app_name] || ENV['APPLICATION_DISPLAY_NAME']
 
         public_key = get_public_key(platform, api_token, package_id)
-        zipfile = mk_zipfile(platform, params[:path], app_name)
+        zipfile = mk_zipfile(platform, params[:path])
         begin
           upload(platform, zipfile, api_token, params[:notes_path], public_key)
         ensure
-          zipfile.delete if zipfile.exist? && zipfile.basename.to_s.start_with?(".tmp")
+          zipfile.delete if zipfile.exist? && zipfile.to_s.end_with?(".zip")
         end
       end
 
@@ -25,16 +24,16 @@ module Fastlane
         }
         note = notes_path.read if notes_path
         query[:note] = note if !(note || '').empty?
-        UI.message "Uploading: #{query}"
 
         uri = URI.parse("https://api.appetize.io/v1/apps/#{public_key}")
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = true
         req = Net::HTTP::Post::Multipart.new(uri.path, query)
         req.basic_auth(api_token, nil)
+
+        UI.message "Uploading: #{query}"
         res = JSON.parse(http.request(req).body)
 
-        UI.message "Uploaded successfully: " + JSON.pretty_generate(res)
         res['publicKey']
       end
 
@@ -59,25 +58,25 @@ module Fastlane
             retrieve(platform, api_token, package_id, res['nextKey'])
           else
             UI.message "Not found Appetize App on '#{platform}': #{package_id}"
+            nil
           end
         end
       end
 
-      def self.mk_zipfile(platform, path, app_name)
+      def self.mk_zipfile(platform, path)
         if !path then
           platform_dir = Pathname.pwd.realpath/'platforms'/platform
           if platform == 'android' then
             path = platform_dir/'build'/'outputs'/'apk'/'android-release.apk'
           else
-            path = platform_dir/'build'/'emulator'/"#{app_name}.app"
+            regex = platform_dir/'build'/'emulator'/'*.app'
+            if Pathname.glob(regex).empty? then
+              puts "Because runs on simulator, we need to rebuild."
+              sh("cordova build ios --emulator")
+            end
+            path = Pathname.glob(regex).first
           end
         end
-
-        if !path.exist? && platform == 'ios' then
-          puts "Because runs on simulator, we need to rebuild."
-          sh("cordova build ios --emulator")
-        end
-
         path.file? ? path : zip_dir(path)
       end
 
@@ -85,27 +84,13 @@ module Fastlane
         require_relative '../lib/gem_install'
         GemInstall.req({"rubyzip" => "zip"})
 
-        zipfile = Pathname('.tmp-artifact.zip')
+        zipfile = basedir.dirname/"#{basedir.basename}.zip"
         Zip::File.open(zipfile, Zip::File::CREATE) do |zip|
-          each_file(basedir) do |file|
-            zip.add(file.relative_path_from(basedir), file)
+          Pathname.glob(basedir/'**'/'*') do |file|
+            zip.add(file.relative_path_from(basedir.dirname), file) if file.file?
           end
         end
         zipfile.realpath
-      end
-
-      def self.each_file(dir, &block)
-        puts "Searching in #{dir}"
-        dir.each_entry { |x|
-          e = dir/x
-          if e != dir && e != dir.dirname then
-            if e.directory? then
-              each_file(e, &block)
-            elsif e.file? then
-              block[e]
-            end
-          end
-        }
       end
 
       #####################################################
@@ -143,12 +128,6 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :platform,
           env_name: 'FASTLANE_PLATFORM_NAME',
           description: "Platform name for search",
-          optional: true,
-          is_string: true
-          ),
-          FastlaneCore::ConfigItem.new(key: :app_name,
-          env_name: 'APPLICATION_DISPLAY_NAME',
-          description: "Application name for display",
           optional: true,
           is_string: true
           )
