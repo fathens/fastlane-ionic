@@ -2,7 +2,7 @@ module Fastlane
   module Actions
     class AndroidBuildAction < Action
       def self.run(params)
-        (Pathname(ENV['HOME'])/'.android').mkdir
+        FileUtils.mkdir_p Pathname('~').expand_path/'.android'
         build_num
 
         update_sdk
