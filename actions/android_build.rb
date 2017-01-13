@@ -2,57 +2,53 @@ module Fastlane
   module Actions
     class AndroidBuildAction < Action
       def self.run(params)
-        update_sdk(params[:sdks] || [])
-        build_num
+        FileUtils.mkdir_p Pathname('~').expand_path/'.android'
 
-        config_file = Dir.chdir(File.join('platforms', 'android')) do
+        update_sdk
+        sh("cordova platform add android")
+
+        config_file = Dir.chdir(Pathname('platforms')/'android') do
           multi_apks(params[:multi_apks])
-          keystore(params[:keystore])
+          keystore(
+            params[:keystore],
+            params[:keystore_password] || ENV['ANDROID_KEYSTORE_PASSWORD'],
+            params[:keystore_alias] || ENV['ANDROID_KEYSTORE_ALIAS'],
+            params[:keystore_alias_password] || ENV['ANDROID_KEYSTORE_ALIAS_PASSWORD']
+          )
         end
 
-        sh("cordova build android --release --buildConfig=#{config_file}")
+        sh("cordova build android --release --device --buildConfig=#{config_file}")
       end
 
-      def self.update_sdk(names)
-        content = sh('android list sdk --extended --all')
-
-        availables = content.split("\n").map { |line|
-          /^id: +\d+ or "(.*)"$/.match line
-        }.compact.map { |m| m[1] }.reject { |x| x.end_with?('preview') }.sort
-
-        puts "Availables of android list: \n#{availables.join("\n")}"
-
-        names.each do |name|
-          puts "Checking SDK: #{name}"
-          key = availables.select { |x| x.start_with?(name) }.last
-          if key != nil then
-            puts "Installing SDK #{key}"
-            system("echo y | android update sdk --no-ui --all --filter #{key} | grep Installed")
-          end
-        end
+      def self.latest_build_tool
+        sh("android list sdk --no-ui --all --extended | grep build-tools").lines.map { |line|
+          line.chomp.match(/^.*\"build-tools-(.+)\".*$/)[1]
+        }.sort.last
       end
 
-      def self.build_num
-        v = ENV["BUILD_NUM"]
-        if v != nil then
-          num = "#{v}000"
-          target = 'config.xml'
-          puts "Setting build number '#{num}' to #{target}"
+      def self.update_sdk
+        require 'rexml/document'
+        config = REXML::Document.new(Pathname('config.xml').read)
+        platform = config.elements['//platform[@name="android"]']
 
-          require 'rexml/document'
-          doc = REXML::Document.new(open(target))
+        build_tools_version = platform&.attribute('build-tools')&.value || latest_build_tool
+        api_version = platform&.attribute('api-version')&.value || '24'
 
-          doc.elements['widget'].attributes['android-versionCode'] = num
-          File.write(target, doc)
-        end
+        sdks = [
+          "android-#{api_version}",
+          "platform-tools",
+          "tools",
+          "build-tools-#{build_tools_version}"
+        ]
+        sh("echo y | android update sdk -u --filter #{sdks.join ','}")
       end
 
-      def self.keystore(file)
+      def self.keystore(file, keystore_password, keystore_alias, keystore_alias_password)
         data = {:android => {:release =>{
           :keystore => file,
-          :storePassword => ENV['ANDROID_KEYSTORE_PASSWORD'],
-          :alias => ENV['ANDROID_KEYSTORE_ALIAS'],
-          :password => ENV['ANDROID_KEYSTORE_ALIAS_PASSWORD']
+          :storePassword => keystore_password,
+          :alias => keystore_alias,
+          :password => keystore_alias_password
           }}}
 
         target = 'build.json'
@@ -88,15 +84,28 @@ module Fastlane
 
       def self.available_options
         [
-          FastlaneCore::ConfigItem.new(key: :sdks,
-          description: "Array of sdk names",
-          optional: true,
-          is_string: false
-          ),
           FastlaneCore::ConfigItem.new(key: :keystore,
-          description: "Absolute path to keystore",
+          description: "Path to keystore",
           optional: false,
           is_string: false
+          ),
+          FastlaneCore::ConfigItem.new(key: :keystore_password,
+          env_name: 'ANDROID_KEYSTORE_PASSWORD',
+          description: "Password for keystore",
+          optional: true,
+          is_string: true
+          ),
+          FastlaneCore::ConfigItem.new(key: :keystore_alias,
+          env_name: 'ANDROID_KEYSTORE_ALIAS',
+          description: "Alias of keystore",
+          optional: true,
+          is_string: true
+          ),
+          FastlaneCore::ConfigItem.new(key: :keystore_alias_password,
+          env_name: 'ANDROID_KEYSTORE_ALIAS_PASSWORD',
+          description: "Password for alias of keystore",
+          optional: true,
+          is_string: true
           ),
           FastlaneCore::ConfigItem.new(key: :multi_apks,
           description: "Boolean for build multiple apks",

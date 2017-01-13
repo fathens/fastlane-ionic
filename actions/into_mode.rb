@@ -3,7 +3,8 @@ module Fastlane
     class IntoModeAction < Action
       def self.run(params)
         if !ENV['BUILD_MODE']
-          branch = ENV['GIT_BRANCH'] || sh('git symbolic-ref HEAD --short 2>/dev/null').strip
+          branch = params[:git_branch] || ENV['GIT_BRANCH']
+          branch ||= sh('git symbolic-ref HEAD --short 2>/dev/null').strip
 
           map = {
             "release" => "BRANCH_RELEASE",
@@ -32,7 +33,14 @@ module Fastlane
       end
 
       def self.available_options
-        []
+        [
+          FastlaneCore::ConfigItem.new(key: :git_branch,
+          env_name: 'GIT_BRANCH',
+          description: "Name of branch. if not specified either params or env, get by git command",
+          optional: true,
+          is_string: true
+          )
+        ]
       end
 
       def self.authors
