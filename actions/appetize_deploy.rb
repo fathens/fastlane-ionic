@@ -12,17 +12,20 @@ module Fastlane
         begin
           upload(platform, zipfile, api_token, params[:notes_path], public_key)
         ensure
-          zipfile.delete if zipfile.exist?
+          zipfile.delete if zipfile.exist? && zipfile.basename.to_s.start_with?(".tmp")
         end
       end
 
       def self.upload(platform, zipfile, api_token, notes_path, public_key)
+        require 'net/http/post/multipart'
+
         query = {
           platform: platform,
-          file: UploadIO.new(zipfile, 'application/zip')
+          file: UploadIO.new(zipfile.to_s, 'application/zip')
         }
         note = notes_path.read if notes_path
         query[:note] = note if !(note || '').empty?
+        UI.message "Uploading: #{query}"
 
         uri = URI.parse("https://api.appetize.io/v1/apps/#{public_key}")
         http = Net::HTTP.new(uri.host, uri.port)
@@ -31,7 +34,7 @@ module Fastlane
         req.basic_auth(api_token, nil)
         res = JSON.parse(http.request(req).body)
 
-        puts JSON.pretty_generate(res)
+        UI.message "Uploaded successfully: " + JSON.pretty_generate(res)
         res['publicKey']
       end
 
@@ -60,9 +63,9 @@ module Fastlane
         end
       end
 
-      def mk_zipfile(platform, path, app_name)
+      def self.mk_zipfile(platform, path, app_name)
         if !path then
-          platform_dir = Pathname.pwd.realpath/'platform'/platform
+          platform_dir = Pathname.pwd.realpath/'platforms'/platform
           if platform == 'android' then
             path = platform_dir/'build'/'outputs'/'apk'/'android-release.apk'
           else
@@ -75,10 +78,10 @@ module Fastlane
           sh("cordova build ios --emulator")
         end
 
-        path.file? ? path : zipdir(path)
+        path.file? ? path : zip_dir(path)
       end
 
-      def zip_dir(basedir)
+      def self.zip_dir(basedir)
         require_relative '../lib/gem_install'
         GemInstall.req({"rubyzip" => "zip"})
 
@@ -91,7 +94,7 @@ module Fastlane
         zipfile.realpath
       end
 
-      def each_file(dir, &block)
+      def self.each_file(dir, &block)
         puts "Searching in #{dir}"
         dir.each_entry { |x|
           e = dir/x
