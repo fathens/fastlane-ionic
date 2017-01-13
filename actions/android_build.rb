@@ -3,7 +3,6 @@ module Fastlane
     class AndroidBuildAction < Action
       def self.run(params)
         FileUtils.mkdir_p Pathname('~').expand_path/'.android'
-        build_num
 
         update_sdk
         sh("cordova platform add android")
@@ -37,21 +36,6 @@ module Fastlane
           "build-tools-#{build_tools_version}"
         ]
         sh("echo y | android update sdk -u --filter #{sdks.join ','}")
-      end
-
-      def self.build_num
-        v = ENV["BUILD_NUM"]
-        if v != nil then
-          num = "#{v}000"
-          target = 'config.xml'
-          puts "Setting build number '#{num}' to #{target}"
-
-          require 'rexml/document'
-          doc = REXML::Document.new(open(target))
-
-          doc.elements['widget'].attributes['android-versionCode'] = num
-          File.write(target, doc)
-        end
       end
 
       def self.keystore(file)

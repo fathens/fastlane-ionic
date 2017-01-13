@@ -2,24 +2,38 @@ module Fastlane
   module Actions
     class CordovaAssetsAction < Action
       def self.run(params)
-        copy_config(params[:app_id])
+        copy_config(params[:app_id], params[:version_code])
         npm_build
         resources
       end
 
-      def self.copy_config(appId)
+      def self.copy_config(appId, versionCode)
         template = Pathname('cordova.config.xml')
         target = Pathname('config.xml')
         if template.exist? && !target.exist? then
           FileUtils.copy(template, target)
         end
 
-        if appId then
-          puts "Setting App ID '#{appId}' to #{target}"
+        if appId || versionCode then
+          ENV["APP_IDENTIFIER"] = appId
+
           require 'rexml/document'
           doc = REXML::Document.new(open(target))
 
-          doc.elements['widget'].attributes['id'] = appId
+          widget = doc.elements['widget']
+          if appId then
+            widget.attributes['id'] = appId if appId
+            UI.message "Setting App ID: '#{appId}' on #{target}"
+          end
+          if versionCode then
+            versionCode.each { |key, value|
+              if value then
+                UI.message "Setting '#{key}' = '#{value}' on #{target}"
+                widget.attributes[key] = value
+              end
+            }
+          end
+
           File.write(target, doc)
         end
       end
@@ -60,6 +74,11 @@ module Fastlane
           description: "App ID for config.xml",
           optional: true,
           is_string: true
+          ),
+          FastlaneCore::ConfigItem.new(key: :version_code,
+          description: "versionCode for config.xml",
+          optional: true,
+          is_string: false
           )
         ]
       end

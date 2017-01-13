@@ -78,7 +78,9 @@ platform :ios do
   end
 
   lane :build do
-    cordova_assets(app_id: ENV["APP_IDENTIFIER"] = ENV['IOS_BUNDLE_ID'])
+    cordova_assets(app_id: ENV['IOS_BUNDLE_ID'], version_code: {
+      'ios-CFBundleVersion': ENV['BUILD_NUM']
+    })
 
     ios_build(
       develop_cert_path: persistent("Development.p12"),
@@ -97,7 +99,9 @@ platform :android do
   end
 
   lane :build do
-    cordova_assets(app_id: ENV["APP_IDENTIFIER"] = ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'])
+    cordova_assets(app_id: ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'], version_code: {
+      'android-versionCode': ENV['BUILD_NUM'] ? "#{ENV['BUILD_NUM']}000" : nil
+    })
 
     android_build(
       keystore: persistent('keystore'),
