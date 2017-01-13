@@ -9,7 +9,12 @@ module Fastlane
 
         config_file = Dir.chdir(Pathname('platforms')/'android') do
           multi_apks(params[:multi_apks])
-          keystore(params[:keystore])
+          keystore(
+            params[:keystore],
+            params[:keystore_password] || ENV['ANDROID_KEYSTORE_PASSWORD'],
+            params[:keystore_alias] || ENV['ANDROID_KEYSTORE_ALIAS'],
+            params[:keystore_alias_password] || ENV['ANDROID_KEYSTORE_ALIAS_PASSWORD']
+          )
         end
 
         sh("cordova build android --release --device --buildConfig=#{config_file}")
@@ -38,12 +43,12 @@ module Fastlane
         sh("echo y | android update sdk -u --filter #{sdks.join ','}")
       end
 
-      def self.keystore(file)
+      def self.keystore(file, keystore_password, keystore_alias, keystore_alias_password)
         data = {:android => {:release =>{
           :keystore => file,
-          :storePassword => ENV['ANDROID_KEYSTORE_PASSWORD'],
-          :alias => ENV['ANDROID_KEYSTORE_ALIAS'],
-          :password => ENV['ANDROID_KEYSTORE_ALIAS_PASSWORD']
+          :storePassword => keystore_password,
+          :alias => keystore_alias,
+          :password => keystore_alias_password
           }}}
 
         target = 'build.json'
@@ -80,9 +85,27 @@ module Fastlane
       def self.available_options
         [
           FastlaneCore::ConfigItem.new(key: :keystore,
-          description: "Absolute path to keystore",
+          description: "Path to keystore",
           optional: false,
           is_string: false
+          ),
+          FastlaneCore::ConfigItem.new(key: :keystore_password,
+          env_name: 'ANDROID_KEYSTORE_PASSWORD',
+          description: "Password for keystore",
+          optional: true,
+          is_string: true
+          ),
+          FastlaneCore::ConfigItem.new(key: :keystore_alias,
+          env_name: 'ANDROID_KEYSTORE_ALIAS',
+          description: "Alias of keystore",
+          optional: true,
+          is_string: true
+          ),
+          FastlaneCore::ConfigItem.new(key: :keystore_alias_password,
+          env_name: 'ANDROID_KEYSTORE_ALIAS_PASSWORD',
+          description: "Password for alias of keystore",
+          optional: true,
+          is_string: true
           ),
           FastlaneCore::ConfigItem.new(key: :multi_apks,
           description: "Boolean for build multiple apks",
