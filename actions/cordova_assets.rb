@@ -65,7 +65,7 @@ module Fastlane
       #####################################################
 
       def self.description
-        "Set app ID for config.xml"
+        "Configure assets for Cordova building"
       end
 
       def self.available_options

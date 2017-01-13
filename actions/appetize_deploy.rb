@@ -98,7 +98,7 @@ module Fastlane
       #####################################################
 
       def self.description
-        "Set app ID for config.xml"
+        "Deploy app to Appetize.io"
       end
 
       def self.available_options
