@@ -1,4 +1,4 @@
-puts "version: 0.0.1"
+puts "version: 0.1.0"
 
 fastlane_version "2.8.0"
 
