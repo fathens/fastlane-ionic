@@ -171,8 +171,7 @@ def deploy_store
         skip_upload_metadata: true,
         skip_upload_images: true,
         skip_upload_screenshots: true,
-        issuer: ENV['ANDROID_GOOGLEPLAY_SERVICE_ACCOUNT_EMAIL'],
-        key: persistent('service_account_key.p12')
+        json_key: persistent('service_account_key.json').to_s
       )
     }
   else
