@@ -163,7 +163,7 @@ end
 
 def deploy_store
   if ENV["FASTLANE_PLATFORM_NAME"] == 'android' then
-    Pathnae.glob(dirPlatform/'build'/'outputs'/'apk'/'android-*-release.apk').each { |apk|
+    Pathname.glob(dirPlatform/'build'/'outputs'/'apk'/'android-*-release.apk').each { |apk|
       supply(
         apk: apk.to_s,
         package_name: ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'],
