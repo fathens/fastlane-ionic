@@ -178,7 +178,7 @@ def deploy_store
   else
     pilot(
       app_identifier: ENV['APP_IDENTIFIER'],
-      ipa: (dirPlatform/"#{ENV["APPLICATION_DISPLAY_NAME"]}.ipa").to_s,
+      ipa: Pathname.glob(dirPlatform/'build'/'device'/'*.ipa').first.to_s,
       skip_submission: true,
       distribute_external: false,
       changelog: release_note(line_format: '%s').read
@@ -190,7 +190,7 @@ def deploy_crashlytics
   if ENV["FASTLANE_PLATFORM_NAME"] == 'android' then
     apk_path = (dirPlatform/'build'/'outputs'/'apk'/'android-release.apk').to_s
   else
-    ipa_path = (dirPlatform/"#{ENV["APPLICATION_DISPLAY_NAME"]}.ipa").to_s
+    ipa_path = Pathname.glob(dirPlatform/'build'/'device'/'*.ipa').first.to_s
   end
 
   crashlytics(
