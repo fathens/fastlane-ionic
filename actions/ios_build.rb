@@ -22,15 +22,17 @@ module Fastlane
       end
 
       def self.provisioning(target_profile_path, develop_profile_path)
-        profile = FastlaneCore::ProvisioningProfile.parse target_profile_path
-        UI.message "Using profile: #{profile}"
-
-        dev_uuid = FastlaneCore::ProvisioningProfile.parse(develop_profile_path)['UUID']
-
         dir = Pathname('~').expand_path/'Library'/'MobileDevice'/'Provisioning Profiles'
         FileUtils.mkdir_p dir
-        FileUtils.copy target_profile_path, dir/"#{profile['UUID']}.mobileprovision"
-        FileUtils.copy develop_profile_path, dir/"#{dev_uuid}.mobileprovision"
+        save_profile = lambda do |profile_path|
+          profile = FastlaneCore::ProvisioningProfile.parse profile_path
+          FileUtils.copy profile_path, dir/"#{profile['UUID']}.mobileprovision"
+          profile
+        end
+
+        save_profile[develop_profile_path]
+        profile = save_profile[target_profile_path]
+        UI.message "Using profile: #{profile}"
 
         {
           provisioningProfile: profile['UUID'],
