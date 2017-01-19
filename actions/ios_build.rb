@@ -25,12 +25,9 @@ module Fastlane
         profile = FastlaneCore::ProvisioningProfile.parse target_profile_path
         UI.message "Using profile: #{profile}"
 
-        dev_uuid = FastlaneCore::ProvisioningProfile.parse(develop_profile_path)['UUID']
-
         dir = Pathname('~').expand_path/'Library'/'MobileDevice'/'Provisioning Profiles'
         FileUtils.mkdir_p dir
         FileUtils.copy target_profile_path, dir/"#{profile['UUID']}.mobileprovision"
-        FileUtils.copy develop_profile_path, dir/"#{dev_uuid}.mobileprovision"
 
         {
           provisioningProfile: profile['UUID'],
