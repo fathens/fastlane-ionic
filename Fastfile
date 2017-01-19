@@ -1,4 +1,4 @@
-puts "version: 0.1.0"
+puts "version: 0.2.0"
 
 fastlane_version "2.8.0"
 
@@ -118,7 +118,7 @@ platform :mac do
   lane :build do
     Dir.chdir($PROJECT_DIR) do
       sh("npm install")
-      sh("npm run ionic:build")
+      sh("npm run build")
     end
   end
 end
@@ -163,7 +163,7 @@ end
 
 def deploy_store
   if ENV["FASTLANE_PLATFORM_NAME"] == 'android' then
-    Pathnae.glob(dirPlatform/'build'/'outputs'/'apk'/'android-*-release.apk').each { |apk|
+    Pathname.glob(dirPlatform/'build'/'outputs'/'apk'/'android-*-release.apk').each { |apk|
       supply(
         apk: apk.to_s,
         package_name: ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'],
@@ -171,14 +171,13 @@ def deploy_store
         skip_upload_metadata: true,
         skip_upload_images: true,
         skip_upload_screenshots: true,
-        issuer: ENV['ANDROID_GOOGLEPLAY_SERVICE_ACCOUNT_EMAIL'],
-        key: persistent('service_account_key.p12')
+        json_key: persistent('service_account_key.json').to_s
       )
     }
   else
     pilot(
       app_identifier: ENV['APP_IDENTIFIER'],
-      ipa: (dirPlatform/"#{ENV["APPLICATION_DISPLAY_NAME"]}.ipa").to_s,
+      ipa: Pathname.glob(dirPlatform/'build'/'device'/'*.ipa').first.to_s,
       skip_submission: true,
       distribute_external: false,
       changelog: release_note(line_format: '%s').read
@@ -190,7 +189,7 @@ def deploy_crashlytics
   if ENV["FASTLANE_PLATFORM_NAME"] == 'android' then
     apk_path = (dirPlatform/'build'/'outputs'/'apk'/'android-release.apk').to_s
   else
-    ipa_path = (dirPlatform/"#{ENV["APPLICATION_DISPLAY_NAME"]}.ipa").to_s
+    ipa_path = Pathname.glob(dirPlatform/'build'/'device'/'*.ipa').first.to_s
   end
 
   crashlytics(

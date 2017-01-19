@@ -6,9 +6,8 @@ module Fastlane
           params[:develop_cert_path], params[:develop_cert_password],
           params[:distrib_cert_path], params[:distrib_cert_password])
         sh("cordova platform add ios")
-        sh("cordova prepare ios")
-        provisioning(params[:target_profile_path], params[:develop_profile_path])
-        sh("cordova build ios --release --device")
+        args = provisioning(params[:target_profile_path], params[:develop_profile_path])
+        sh("cordova build ios --release --device #{args}")
       end
 
       def self.keychain(dev_path, dev_password, dist_path, dist_password)
@@ -23,42 +22,24 @@ module Fastlane
       end
 
       def self.provisioning(target_profile_path, develop_profile_path)
-        profile = FastlaneCore::ProvisioningProfile.parse target_profile_path
-        UI.message "Using profile: #{profile}"
-
-        dev_uuid = FastlaneCore::ProvisioningProfile.parse(develop_profile_path)['UUID']
-
         dir = Pathname('~').expand_path/'Library'/'MobileDevice'/'Provisioning Profiles'
         FileUtils.mkdir_p dir
-        FileUtils.copy target_profile_path, dir/"#{profile['UUID']}.mobileprovision"
-        FileUtils.copy develop_profile_path, dir/"#{dev_uuid}.mobileprovision"
+        save_profile = lambda do |profile_path|
+          profile = FastlaneCore::ProvisioningProfile.parse profile_path
+          FileUtils.copy profile_path, dir/"#{profile['UUID']}.mobileprovision"
+          profile
+        end
 
-        config_values = {
-          "DEVELOPMENT_TEAM" => profile['TeamIdentifier'].first,
-          "PROVISIONING_PROFILE" => profile['UUID']
-        }
-        rewrite(Pathname('platforms')/'ios'/'cordova'/'build.xcconfig', config_values)
-      end
+        save_profile[develop_profile_path]
+        profile = save_profile[target_profile_path]
+        UI.message "Using profile: #{profile}"
 
-      def self.rewrite(xcconfig, config_values)
-        xcconfig_tmp = Pathname("#{xcconfig}.tmp")
-
-        xcconfig.open('r') { |src|
-          xcconfig_tmp.open('w') { |dst|
-            src.each_line { |line|
-              found = config_values.keys.find { |key|
-                line.match("#{key} *=")
-              }
-              dst.puts line if !found
-            }
-            dst.puts "", "// Code Signing"
-            config_values.each { |key, value|
-              dst.puts "#{key} = #{value}"
-            }
-          }
-        }
-        xcconfig_tmp.rename xcconfig
-        UI.message "Wrote #{xcconfig}"
+        {
+          provisioningProfile: profile['UUID'],
+          developmentTeam: profile['TeamIdentifier'].first
+        }.map { |key, value|
+          "--#{key}=#{value}"
+        }.join(' ')
       end
 
       #####################################################
