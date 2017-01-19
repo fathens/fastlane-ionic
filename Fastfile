@@ -116,7 +116,10 @@ platform :mac do
   end
 
   lane :build do
-    cordova_assets
+    Dir.chdir($PROJECT_DIR) do
+      sh("npm install")
+      sh("npm run build")
+    end
   end
 end
 
