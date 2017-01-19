@@ -117,7 +117,6 @@ platform :mac do
 
   lane :build do
     Dir.chdir($PROJECT_DIR) do
-      sh("npm install")
       sh("npm run build")
     end
   end

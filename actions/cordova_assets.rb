@@ -40,7 +40,6 @@ module Fastlane
 
       def self.npm_build
         if !Pathname('www').exist? then
-          sh("npm install")
           sh("npm run build")
         end
       end
