@@ -10,32 +10,39 @@ module Fastlane
       def self.copy_config(appId, versionCode)
         template = Pathname('cordova.config.xml')
         target = Pathname('config.xml')
-        if template.exist? && !target.exist? then
-          FileUtils.copy(template, target)
+        if !template.exist? then
+          UI.message "Template is not found: #{template}"
+          return
+        end
+        if target.exist? then
+          UI.message "Target is already here: #{target}"
+          return
         end
 
-        if appId || versionCode then
+        require 'rexml/document'
+        doc = REXML::Document.new(open(template))
+        widget = doc.elements['widget']
+
+        if ENV['BUILD_MODE'] == "release" then
+          e = widget.elements["plugin[@name='cordova-plugin-console']"]
+          widget.delete e if e
+        end
+
+        if appId then
           ENV["APP_IDENTIFIER"] = appId
-
-          require 'rexml/document'
-          doc = REXML::Document.new(open(target))
-
-          widget = doc.elements['widget']
-          if appId then
-            widget.attributes['id'] = appId if appId
-            UI.message "Setting App ID: '#{appId}' on #{target}"
-          end
-          if versionCode then
-            versionCode.each { |key, value|
-              if value then
-                UI.message "Setting '#{key}' = '#{value}' on #{target}"
-                widget.attributes[key.to_s] = value
-              end
-            }
-          end
-
-          File.write(target, doc)
+          widget.attributes['id'] = appId
+          UI.message "Setting App ID: '#{appId}' on #{target}"
         end
+        if versionCode then
+          versionCode.each { |key, value|
+            if value then
+              UI.message "Setting '#{key}' = '#{value}' on #{target}"
+              widget.attributes[key.to_s] = value
+            end
+          }
+        end
+
+        target.write doc
       end
 
       def self.npm_build
