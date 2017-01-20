@@ -40,7 +40,7 @@ module Fastlane
           "tools",
           "build-tools-#{build_tools_version}"
         ]
-        sh("echo y | android update sdk -u --filter #{sdks.join ','}")
+        sh("echo y | android update sdk -a -u --filter #{sdks.join ','}")
       end
 
       def self.keystore(file, keystore_password, keystore_alias, keystore_alias_password)
