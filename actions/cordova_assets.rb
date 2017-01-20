@@ -24,8 +24,7 @@ module Fastlane
         widget = doc.elements['widget']
 
         if ENV['BUILD_MODE'] == "release" then
-          e = widget.elements["plugin[@name='cordova-plugin-console']"]
-          widget.delete e if e
+          widget.elements.delete("plugin[@name='cordova-plugin-console']")
         end
 
         if appId then
