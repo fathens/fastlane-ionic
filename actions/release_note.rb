@@ -48,10 +48,12 @@ module Fastlane
         prefix = ['deployed', platform, build_mode].join('/') + '/'
         num = sh("git tag -l | grep '#{prefix}' || echo").lines.map { |line|
           line.chomp.match(/.*\/([0-9]+)$/)
-        }.compact.select { |m|
-          m[1].to_i < build_num
+        }.compact.map { |m|
+          m[1].to_i
+        }.select { |n|
+          n < build_num
         }.max
-        num ? prefix + num : 'HEAD'
+        num ? prefix + num.to_s : 'HEAD'
       end
 
       class CommitObj
