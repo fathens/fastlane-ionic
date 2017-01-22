@@ -17,26 +17,28 @@ def is_release?
 end
 
 def del(*path)
-  target = $PROJECT_DIR.join(*path)
-  if target.exist? then
-    if target.directory? then
-      if !(target/'.keep').exist? then
-        puts "Deleting dir: #{target.realpath}"
-        FileUtils.rm_rf target
-      end
-    else
-      if !Pathname("#{target.to_s}.keep").exist? then
-        puts "Deleting file: #{target.realpath}"
-        target.delete
+  Pathname.glob($PROJECT_DIR.join(*(path.compact))).each { |target|
+    if target.exist? then
+      if target.directory? then
+        if !(target/'.keep').exist? then
+          puts "Deleting dir: #{target.realpath}"
+          FileUtils.rm_rf target
+        end
+      else
+        if !Pathname("#{target.to_s}.keep").exist? then
+          puts "Deleting file: #{target.realpath}"
+          target.delete
+        end
       end
     end
-  end
+  }
 end
 
 def clean
+  puts "Clean..."
   del('config.xml')
-  del('resources', ENV["FASTLANE_PLATFORM_NAME"])
-  del('platforms')
+  del('resources', ENV["FASTLANE_PLATFORM_NAME"] || '*/')
+  del('platforms', ENV["FASTLANE_PLATFORM_NAME"])
   del('plugins')
   del('www')
 end
@@ -64,6 +66,10 @@ before_all do |lane, options|
     check_persistent if !options[:no_persistent]
     into_mode
   end
+end
+
+lane :clean do
+  clean
 end
 
 lane :upload_persistent do

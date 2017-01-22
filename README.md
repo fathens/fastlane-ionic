@@ -5,6 +5,11 @@ fastlane documentation
 sudo gem install fastlane
 ```
 # Available Actions
+### clean
+```
+fastlane clean
+```
+
 ### upload_persistent
 ```
 fastlane upload_persistent
