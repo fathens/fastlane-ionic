@@ -123,7 +123,7 @@ platform :mac do
 end
 
 after_all do |lane, options|
-  if lane != :upload_persistent then
+  if lane == :build then
     if is_ci? then
       if ENV["FASTLANE_PLATFORM_NAME"] == 'mac' then
         deploy_s3site
