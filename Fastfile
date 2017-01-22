@@ -94,7 +94,7 @@ platform :ios do
       develop_cert_password: ENV["IOS_DEVELOPMENT_KEY_PASSWORD"],
       distrib_cert_password: ENV["IOS_DISTRIBUTION_KEY_PASSWORD"],
       develop_profile_path: persistent('Profile_Development.mobileprovision'),
-      target_profile_path: is_release? ? persistent('Profile_AppStore.mobileprovision') : persistent('Profile_AdHoc.mobileprovision')
+      target_profile_path: persistent("Profile_#{is_release? ? 'AppStore' : 'AdHoc'}.mobileprovision")
     )
   end
 end
