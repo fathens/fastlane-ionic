@@ -38,9 +38,12 @@ module Fastlane
           "android-#{api_version}",
           "platform-tools",
           "tools",
+          "extra-android-m2repository",
+          'extra-android-support',
+          'extra-google-m2repository',
           "build-tools-#{build_tools_version}"
         ]
-        sh("echo y | android update sdk -a -u --filter #{sdks.join ','}")
+        sh("android update sdk -a -u --accept-licenses='android-sdk-license-.+' --filter #{sdks.join ','}")
       end
 
       def self.keystore(file, keystore_password, keystore_alias, keystore_alias_password)
