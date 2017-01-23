@@ -43,7 +43,7 @@ module Fastlane
           'extra-google-m2repository',
           "build-tools-#{build_tools_version}"
         ]
-        sh("android update sdk -a -u --accept-licenses='android-sdk-license-.+' --filter #{sdks.join ','}")
+        sh("yes | android update sdk -a -u --filter #{sdks.join ','}")
       end
 
       def self.keystore(file, keystore_password, keystore_alias, keystore_alias_password)
