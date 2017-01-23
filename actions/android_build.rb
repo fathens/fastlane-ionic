@@ -39,7 +39,6 @@ module Fastlane
           "platform-tools",
           "tools",
           "extra-android-m2repository",
-          'extra-android-support',
           'extra-google-m2repository',
           "build-tools-#{build_tools_version}"
         ]
