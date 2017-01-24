@@ -8,7 +8,7 @@ module Fastlane
 
         basedir = Pathname.pwd.realpath/'fastlane'
 
-        puts "S3Persistent: #{params[:command]}"
+        UI.message "S3Persistent: #{params[:command]}"
 
         case params[:command]
         when 'upload'
@@ -19,7 +19,7 @@ module Fastlane
       end
 
       def self.each_file(dir, &block)
-        puts "Searching in #{dir}"
+        UI.message "Searching in #{dir}"
         dir.each_entry { |x|
           e = dir/x
           if e != dir && e != dir.dirname then
@@ -33,11 +33,11 @@ module Fastlane
       end
 
       def self.upload(basedir, bucket, dirpath)
-        puts "Uploading persistents..."
+        UI.message "Uploading persistents..."
 
         buffer = Zip::OutputStream.write_buffer(::StringIO.new('')) { |zip|
           put_entry = lambda do |file|
-            puts "Save entry: #{file}"
+            UI.message "Save entry: #{file}"
             zip.put_next_entry(file.relative_path_from basedir)
             file.open { |src|
               zip.write(src.read)
@@ -53,11 +53,11 @@ module Fastlane
           bucket: bucket,
           key: "#{dirpath}/persistent.zip"
         )
-        puts "Done to upload persistents"
+        UI.message "Done to upload persistents"
       end
 
       def self.download(basedir, bucket, dirpath)
-        puts "Downloading persistents..."
+        UI.message "Downloading persistents..."
         s3 = Aws::S3::Client.new
         res = s3.get_object(
           bucket: bucket,
@@ -66,7 +66,7 @@ module Fastlane
         zip = Zip::InputStream.new(res.body)
         while (entry = zip.get_next_entry) do
           target = basedir/entry.name
-          puts "Load entry: #{target}"
+          UI.message "Load entry: #{target}"
           FileUtils.mkdir_p target.dirname
           target.open('w') { |dst|
             dst.puts zip.read

@@ -12,7 +12,7 @@ module Fastlane
 
       def self.keychain(dev_path, dev_password, dist_path, dist_password)
         keychain_name = sh("security default-keychain").match(/.*\/([^\/]+)\"/)[1]
-        puts "Using keychain: #{keychain_name}"
+        UI.message "Using keychain: #{keychain_name}"
         keychain = (Pathname('~').expand_path/'Library'/'Keychains'/keychain_name).to_s
 
         FastlaneCore::KeychainImporter.import_file(dev_path.to_s, keychain,

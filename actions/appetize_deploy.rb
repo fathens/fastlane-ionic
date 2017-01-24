@@ -71,7 +71,7 @@ module Fastlane
           else
             regex = platform_dir/'build'/'emulator'/'*.app'
             if Pathname.glob(regex).empty? then
-              puts "Because runs on simulator, we need to rebuild."
+              UI.message "Because runs on simulator, we need to rebuild."
               sh("cordova build ios --emulator")
             end
             path = Pathname.glob(regex).first

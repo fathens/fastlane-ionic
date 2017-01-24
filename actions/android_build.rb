@@ -54,7 +54,7 @@ module Fastlane
           }}}
 
         target = 'build.json'
-        puts "Writing #{target}"
+        UI.message "Writing #{target}"
         File.write(target, JSON.dump(data))
 
         File.absolute_path target
