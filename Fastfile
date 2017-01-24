@@ -87,6 +87,7 @@ platform :ios do
     cordova_assets(app_id: ENV['IOS_BUNDLE_ID'], version_code: {
       'ios-CFBundleVersion': ENV['BUILD_NUM']
     })
+    babel_es5
 
     ios_build(
       develop_cert_path: persistent("Development.p12"),
@@ -125,6 +126,7 @@ platform :mac do
     Dir.chdir($PROJECT_DIR) do
       sh("npm run build")
     end
+    babel_es5
   end
 end
 
