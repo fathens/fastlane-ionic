@@ -11,9 +11,9 @@ module Fastlane
           multi_apks(params[:multi_apks])
           keystore(
             params[:keystore],
-            params[:keystore_password] || ENV['ANDROID_KEYSTORE_PASSWORD'],
-            params[:keystore_alias] || ENV['ANDROID_KEYSTORE_ALIAS'],
-            params[:keystore_alias_password] || ENV['ANDROID_KEYSTORE_ALIAS_PASSWORD']
+            params[:keystore_password],
+            params[:keystore_alias],
+            params[:keystore_alias_password]
           )
         end
 

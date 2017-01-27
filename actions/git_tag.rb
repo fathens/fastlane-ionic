@@ -2,8 +2,7 @@ module Fastlane
   module Actions
     class GitTagAction < Action
       def self.run(params)
-        slug = params[:git_path] || ENV['PROJECT_REPO_SLUG']
-        uri = URI("https://api.github.com/repos/#{slug}/git/refs")
+        uri = URI("https://api.github.com/repos/#{params[:git_path]}/git/refs")
         data = {
           :ref => "refs/tags/#{params[:tag_name]}",
           :sha => sh('git log HEAD -n1 --format=%H').strip

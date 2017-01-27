@@ -2,11 +2,7 @@ module Fastlane
   module Actions
     class AppetizeDeployAction < Action
       def self.run(params)
-        platform = params[:platform] || ENV["FASTLANE_PLATFORM_NAME"]
-        api_token = params[:api_token] || ENV["APPETIZE_API_TOKEN"]
-        package_id = params[:package_id] || ENV["APP_IDENTIFIER"]
-
-        public_key = get_public_key(platform, api_token, package_id)
+        public_key = get_public_key(params[:platform], params[:api_token], params[:package_id])
         zipfile = mk_zipfile(platform, params[:path])
         begin
           upload(platform, zipfile, api_token, params[:notes_path], public_key)

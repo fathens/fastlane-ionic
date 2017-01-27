@@ -3,7 +3,7 @@ module Fastlane
     class IntoModeAction < Action
       def self.run(params)
         if !ENV['BUILD_MODE']
-          branch = params[:git_branch] || ENV['GIT_BRANCH']
+          branch = params[:git_branch]
           branch ||= sh('git symbolic-ref HEAD --short 2>/dev/null').strip
 
           map = {

@@ -2,11 +2,7 @@ module Fastlane
   module Actions
     class ReleaseNoteAction < Action
       def self.run(params)
-        platform = params[:platform] || ENV['FASTLANE_PLATFORM_NAME']
-        build_mode = params[:build_mode] || ENV['BUILD_MODE']
-        build_num = (params[:build_num] || ENV['BUILD_NUM']).to_i
-
-        notes = logs(platform, build_mode, build_num, params[:line_format]).join("\n")
+        notes = logs(params[:platform], params[:build_mode], params[:build_num].to_i, params[:line_format]).join("\n")
 
         UI.message "#### RELEASE_NOTE ####\n" + notes
         target = Pathname('.release_note')
