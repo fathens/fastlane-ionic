@@ -4,7 +4,7 @@ module Fastlane
       def self.run(params)
         npm_build
 
-        presets = params[:presets]
+        presets = params[:babel]
         presets = presets.split(',').map { |x| x.strip } if (presets.is_a? String)
         if !presets.empty? then
           babel(Pathname('www')/'build'/'main.js', presets, params[:compress])
@@ -68,7 +68,7 @@ module Fastlane
 
       def self.available_options
         [
-          FastlaneCore::ConfigItem.new(key: :presets,
+          FastlaneCore::ConfigItem.new(key: :babel,
           env_name: 'BABEL_PRESETS',
           description: "Presets for using by babel",
           optional: true,
