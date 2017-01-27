@@ -3,7 +3,6 @@ module Fastlane
     class CordovaAssetsAction < Action
       def self.run(params)
         copy_config(params[:app_id], params[:version_code])
-        npm_build
         resources
       end
 
@@ -42,12 +41,6 @@ module Fastlane
         end
 
         target.write doc
-      end
-
-      def self.npm_build
-        if !Pathname('www').exist? then
-          sh("npm run build")
-        end
       end
 
       def self.resources

@@ -87,7 +87,7 @@ platform :ios do
     cordova_assets(app_id: ENV['IOS_BUNDLE_ID'], version_code: {
       'ios-CFBundleVersion': ENV['BUILD_NUM']
     })
-    babel
+    build_www
 
     ios_build(
       develop_cert_path: persistent("Development.p12"),
@@ -109,7 +109,7 @@ platform :android do
     cordova_assets(app_id: ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'], version_code: {
       'android-versionCode': ENV['BUILD_NUM'] ? "#{ENV['BUILD_NUM']}000" : nil
     })
-    babel
+    build_www
 
     android_build(
       keystore: persistent('keystore'),
@@ -124,10 +124,7 @@ platform :mac do
   end
 
   lane :build do
-    Dir.chdir($PROJECT_DIR) do
-      sh("npm run build")
-    end
-    babel
+    build_www
   end
 end
 

@@ -1,11 +1,21 @@
 module Fastlane
   module Actions
-    class BabelAction < Action
+    class BuildWwwAction < Action
       def self.run(params)
+        npm_build
+
         presets = params[:presets]
         presets = presets.split(',').map { |x| x.strip } if (presets.is_a? String)
-        babel(Pathname('www')/'build'/'main.js', presets, params[:compress])
-        add_runtime(Pathname('node_modules')/'regenerator-runtime'/'runtime.js')
+        if !presets.empty? then
+          babel(Pathname('www')/'build'/'main.js', presets, params[:compress])
+          add_runtime(Pathname('node_modules')/'regenerator-runtime'/'runtime.js')
+        end
+      end
+
+      def self.npm_build
+        if !Pathname('www').exist? then
+          sh("npm run build")
+        end
       end
 
       def self.babel(src, presets, compress)
@@ -53,7 +63,7 @@ module Fastlane
       #####################################################
 
       def self.description
-        "Transpile es6 to es5 by babel"
+        "Build www , babel and uglifyjs"
       end
 
       def self.available_options
