@@ -1,6 +1,6 @@
 module Fastlane
   module Actions
-    class BabelEs5Action < Action
+    class BabelAction < Action
       def self.run(params)
         presets = params[:presets]
         presets = presets.split(',').map { |x| x.strip } if (presets.is_a? String)
