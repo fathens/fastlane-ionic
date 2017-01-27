@@ -2,15 +2,21 @@ module Fastlane
   module Actions
     class BabelEs5Action < Action
       def self.run(params)
-        babel(Pathname('www')/'build'/'main.js')
+        babel(Pathname('www')/'build'/'main.js', params[:compress])
         add_runtime(Pathname('node_modules')/'regenerator-runtime'/'runtime.js')
       end
 
-      def self.babel(src)
-        tmp = Pathname('es5.js')
+      def self.babel(src, compress)
+        UI.message "babel with#{compress ? '' : 'out'} compress"
+        tmp = src.dirname/'es5.js'
         sh('npm install babel-cli babel-preset-es2015 babel-preset-stage-0')
         sh("babel --presets=es2015,stage-0 -o #{tmp} #{src}")
-        tmp.rename src
+        if compress then
+          sh('npm install uglify-js')
+          sh("uglifyjs --compress --mangle --output #{src} -- #{tmp}")
+        else
+          tmp.rename src
+        end
 
         jsmap = Pathname("#{src}.map")
         jsmap.delete if jsmap.exist?
@@ -48,6 +54,12 @@ module Fastlane
 
       def self.available_options
         [
+          FastlaneCore::ConfigItem.new(key: :compress,
+          description: "Compress after babel by uglifyjs",
+          optional: true,
+          default_value: true,
+          is_string: false
+          )
         ]
       end
 
