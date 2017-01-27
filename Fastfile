@@ -109,7 +109,7 @@ platform :android do
     cordova_assets(app_id: ENV['ANDROID_GOOGLEPLAY_PACKAGE_NAME'], version_code: {
       'android-versionCode': ENV['BUILD_NUM'] ? "#{ENV['BUILD_NUM']}000" : nil
     })
-    build_www
+    build_www(babel: [])
 
     android_build(
       keystore: persistent('keystore'),
